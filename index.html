@@ -1,0 +1,3686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algorithm Visualizer — BSD 404 — Dr. Arash Kermani</title>
+<style>
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0d1117;
+  --bg2:       #161b22;
+  --bg3:       #21262d;
+  --border:    #30363d;
+  --text:      #e6edf3;
+  --text2:     #8b949e;
+  --text3:     #6e7681;
+  --accent:    #58a6ff;
+  --green:     #3fb950;
+  --yellow:    #d29922;
+  --orange:    #f0883e;
+  --red:       #f85149;
+  --purple:    #bc8cff;
+  --teal:      #39d353;
+  --cyan:      #56d364;
+
+  /* Part colors */
+  --c-odd:     #58a6ff;
+  --c-even:    #f0883e;
+  --c-compare: #d29922;
+  --c-swap:    #f85149;
+  --c-sorted:  #3fb950;
+  --c-normal:  #8b949e;
+  --c-active:  #bc8cff;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Top Header ── */
+.site-header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.site-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.site-subtitle {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* ── Tab Nav ── */
+.tab-nav {
+  display: flex;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  gap: 4px;
+  overflow-x: auto;
+}
+.tab-btn {
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.tab-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: var(--bg3);
+  color: var(--text2);
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+/* ── Part Section ── */
+.part-section { display: none; }
+.part-section.active { display: block; }
+
+/* ── Lecture Notes ── */
+.lecture-notes {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+}
+.lecture-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  cursor: pointer;
+  user-select: none;
+}
+.lecture-notes-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.collapse-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.collapse-btn:hover { background: var(--border); }
+
+.lecture-body {
+  padding: 0 20px 20px;
+  max-width: 900px;
+}
+.lecture-body.collapsed { display: none; }
+
+.roadmap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: var(--bg3);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.roadmap a {
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: none;
+}
+.roadmap a:hover { text-decoration: underline; }
+
+.lec-section { margin-bottom: 28px; }
+.lec-section h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.lec-section p {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+.lec-section strong { color: var(--text); }
+
+.key-concept {
+  background: var(--bg3);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: var(--text2);
+}
+.key-concept strong { color: var(--accent); display: block; margin-bottom: 4px; }
+
+.callout-box {
+  background: rgba(88,166,255,0.08);
+  border: 1px solid rgba(88,166,255,0.25);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-size: 13px;
+  color: var(--text2);
+}
+.callout-box.green { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.25); }
+.callout-box.yellow { background: rgba(210,153,34,0.08); border-color: rgba(210,153,34,0.25); }
+
+.lec-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 10px 0;
+}
+.lec-table th {
+  background: var(--bg3);
+  color: var(--text2);
+  padding: 7px 10px;
+  text-align: left;
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+.lec-table td {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  color: var(--text2);
+}
+.lec-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+pre.pseudocode-lec {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--text2);
+  overflow-x: auto;
+  line-height: 1.6;
+  margin: 10px 0;
+}
+
+/* ── Main Tool Layout ── */
+.tool-layout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  min-height: calc(100vh - 120px);
+}
+
+@media (max-width: 980px) {
+  .tool-layout { grid-template-columns: 1fr; }
+}
+
+/* ── Left Panel ── */
+.left-panel {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.panel-section {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.panel-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text3);
+  margin-bottom: 10px;
+}
+
+/* Controls: selects, inputs */
+select, input[type="text"], input[type="number"] {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  padding: 7px 9px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color .15s;
+}
+select:focus, input:focus { border-color: var(--accent); }
+
+label {
+  display: block;
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 4px;
+}
+
+/* Presets */
+.preset-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.preset-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 11px;
+  padding: 4px 9px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.preset-btn:hover {
+  background: var(--border);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+/* Speed slider */
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.speed-label {
+  font-size: 12px;
+  color: var(--text2);
+  min-width: 38px;
+  text-align: right;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+/* Playback buttons */
+.playback-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.btn {
+  flex: 1;
+  min-width: 60px;
+  padding: 7px 4px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg2);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+  white-space: nowrap;
+  text-align: center;
+}
+.btn:hover { background: var(--border); color: var(--text); }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0d1117;
+}
+.btn.primary:hover { background: #79bcff; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Step counter + Status */
+.status-row {
+  display: flex;
+  gap: 10px;
+}
+.status-item {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 10px;
+  text-align: center;
+}
+.status-item .s-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  display: block;
+  margin-bottom: 2px;
+}
+.status-item .s-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Stats counters */
+.stats-row {
+  display: flex;
+  gap: 8px;
+}
+.stat-box {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 8px;
+  text-align: center;
+}
+.stat-box .s-label {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  display: block;
+  margin-bottom: 2px;
+}
+.stat-box .s-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* Tip */
+.tip-text {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+.tip-text strong { color: var(--text2); }
+
+/* Pseudocode */
+.pseudocode-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 12px;
+}
+.pc-line {
+  display: flex;
+  align-items: flex-start;
+  padding: 2px 0;
+  cursor: default;
+  transition: background .1s;
+  position: relative;
+}
+.pc-line:hover { background: rgba(255,255,255,0.04); }
+.pc-line.active {
+  background: rgba(210,153,34,0.18);
+  border-left: 2px solid var(--yellow);
+}
+.pc-num {
+  min-width: 32px;
+  text-align: right;
+  padding: 3px 8px 3px 6px;
+  color: var(--text3);
+  user-select: none;
+  font-size: 11px;
+  border-right: 1px solid var(--border);
+}
+.pc-code {
+  padding: 3px 10px;
+  color: var(--text2);
+  white-space: pre;
+  line-height: 1.5;
+}
+.pc-line.active .pc-code { color: var(--text); }
+
+/* Step explanation */
+.step-explanation {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  min-height: 56px;
+  line-height: 1.6;
+}
+.step-explanation strong { color: var(--text); }
+
+/* History table */
+.history-table-wrap {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.history-table th {
+  background: var(--bg3);
+  color: var(--text3);
+  padding: 5px 8px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+.history-table td {
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  color: var(--text2);
+  cursor: pointer;
+}
+.history-table tr:hover td { background: rgba(88,166,255,0.06); }
+.history-table tr.current td { background: rgba(88,166,255,0.12); color: var(--text); }
+
+/* ── Right Panel ── */
+.right-panel {
+  background: var(--bg);
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text2);
+}
+.legend-swatch {
+  width: 14px; height: 14px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* SVG canvas */
+.viz-canvas {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+#main-svg {
+  display: block;
+  width: 100%;
+}
+
+/* Bitonic comparison */
+.compare-pane {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.compare-pane h4 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.compare-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.compare-box .algo-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.compare-box .algo-stat {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.compare-box .algo-stat-label {
+  font-size: 10px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+</style>
+</head>
+<body>
+
+<!-- ── Site Header ── -->
+<header class="site-header">
+  <div>
+    <div class="site-title">Algorithm Visualizer</div>
+    <div class="site-subtitle">BSD 404 — Algorithms II &nbsp;|&nbsp; Dr. Arash Kermani &nbsp;|&nbsp; Interactive Teaching Tool</div>
+  </div>
+</header>
+
+<!-- ── Tab Nav ── -->
+<nav class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab(1)">
+    Part 1 — Odd-Even Merge Sort <span class="tab-badge">CLO-1</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab(2)">
+    Part 2 — FFT Polynomial <span class="tab-badge">CLO-2</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab(3)">
+    Part 3 — Miller-Rabin <span class="tab-badge">CLO-3</span>
+  </button>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     PART 1 — ODD-EVEN MERGE SORTING NETWORK
+══════════════════════════════════════════ -->
+<section class="part-section active" id="part1">
+
+  <!-- Lecture Notes -->
+  <div class="lecture-notes">
+    <div class="lecture-notes-header" onclick="toggleLecture('lec1')">
+      <h2>📖 Lecture Notes — Odd-Even Merge Sorting Network &nbsp;<span style="font-size:11px;font-weight:400;color:var(--text3)">Start Here</span></h2>
+      <button class="collapse-btn" id="lec1-btn">Collapse</button>
+    </div>
+    <div class="lecture-body" id="lec1">
+      <div class="roadmap">
+        <strong style="font-size:11px;color:var(--text2);margin-right:6px;">Learning Roadmap:</strong>
+        <a href="#l1s1"><strong>1.</strong> What is a Sorting Network?</a> &nbsp;·&nbsp;
+        <a href="#l1s2"><strong>2.</strong> Comparators &amp; the Compare-Swap</a> &nbsp;·&nbsp;
+        <a href="#l1s3"><strong>3.</strong> Batcher's Odd-Even Merge</a> &nbsp;·&nbsp;
+        <a href="#l1s4"><strong>4.</strong> Recursive Structure</a> &nbsp;·&nbsp;
+        <a href="#l1s5"><strong>5.</strong> The 0-1 Principle</a> &nbsp;·&nbsp;
+        <a href="#l1s6"><strong>6.</strong> Complexity Analysis</a> &nbsp;·&nbsp;
+        <a href="#l1s7"><strong>7.</strong> Bitonic vs Odd-Even</a> &nbsp;·&nbsp;
+        <a href="#l1s8"><strong>8.</strong> Interactive Tool</a>
+      </div>
+
+      <div class="lec-section" id="l1s1">
+        <h3>1. What is a Sorting Network?</h3>
+        <p>A <strong>sorting network</strong> is a fixed, data-independent network of <strong>comparators</strong>. Unlike a conventional sorting algorithm (like quicksort or merge sort), a sorting network's structure is determined entirely ahead of time — it doesn't branch based on the values it's sorting. The same sequence of comparisons is applied to every input.</p>
+        <p>This makes sorting networks ideal for <strong>hardware implementations</strong> (like FPGAs and GPUs), where you want to exploit massive parallelism. Every comparator that doesn't depend on another can fire simultaneously.</p>
+        <div class="key-concept">
+          <strong>Key Concept: Data Independence</strong>
+          A sorting network compares the <em>same pairs</em> in the <em>same order</em> no matter what values are in the input. This is what makes it a "network" rather than an "algorithm" — it's a circuit, not a program.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l1s2">
+        <h3>2. Comparators &amp; the Compare-Swap Operation</h3>
+        <p>The only operation in a sorting network is the <strong>comparator</strong>: it takes two wires, compares their values, and places the smaller on the top wire and the larger on the bottom wire. If they're already in order, nothing changes.</p>
+        <pre class="pseudocode-lec">COMPARE-SWAP(A, i, j):     // i < j
+    if A[i] > A[j]:
+        swap A[i] and A[j]
+// After: A[i] ≤ A[j] — always</pre>
+        <p>Comparators are drawn as vertical bars connecting two horizontal "wires." Values flow from left to right. A comparator bar means "ensure the smaller value is on the upper wire."</p>
+        <div class="callout-box yellow">
+          <strong style="color:var(--yellow)">Depth vs Comparators:</strong> Two metrics matter. <strong>Depth</strong> = the length of the longest path of dependent comparators (this determines latency in parallel hardware). <strong>Comparators</strong> = total number of compare-swap operations (this determines hardware cost). We want both to be small.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l1s3">
+        <h3>3. Batcher's Odd-Even Merge (1968)</h3>
+        <p>Kenneth Batcher invented the <strong>Odd-Even Merge Sort</strong> in 1968. The key insight is a recursive merge procedure that works on two sorted halves.</p>
+        <p><strong>ODD-EVEN-MERGE(A[0..n-1]):</strong> To merge two sorted sequences of length n/2 each:</p>
+        <pre class="pseudocode-lec">ODD-EVEN-MERGE(lo, hi, step):
+    half = step * 2
+    if half < hi - lo:
+        ODD-EVEN-MERGE(lo, hi, half)       // merge odd-indexed elements
+        ODD-EVEN-MERGE(lo + step, hi, half) // merge even-indexed elements
+        for i = lo + step to hi - step, step 2*step:
+            COMPARE-SWAP(i, i + step)       // final compare-swap layer
+    else:
+        COMPARE-SWAP(lo, lo + step)         // base case</pre>
+        <div class="key-concept">
+          <strong>The Odd-Even Split Insight</strong>
+          Split both sorted halves into their odd-indexed and even-indexed elements. Recursively merge the odd halves together, and the even halves together. The resulting sequences are "almost sorted" — they only need one additional layer of compare-swap operations on adjacent pairs to become fully sorted.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l1s4">
+        <h3>4. Recursive Structure — How the Full Sort Works</h3>
+        <p>The full <strong>ODD-EVEN-MERGE-SORT</strong> applies the merge recursively to sort the entire array:</p>
+        <pre class="pseudocode-lec">ODD-EVEN-SORT(A, lo, hi):
+    if hi - lo > 1:
+        mid = (lo + hi) / 2
+        ODD-EVEN-SORT(A, lo, mid)    // sort first half
+        ODD-EVEN-SORT(A, mid, hi)    // sort second half
+        ODD-EVEN-MERGE(A, lo, hi, 1) // merge two sorted halves</pre>
+        <p>The recursion bottom-out when subproblems have size 1 (trivially sorted). The visualization color-codes <span style="color:var(--c-odd)">odd-indexed</span> wires and <span style="color:var(--c-even)">even-indexed</span> wires so you can see the split structure as it animates.</p>
+        <div class="callout-box green">
+          <strong style="color:var(--green)">Worked Example — 4 elements [3, 1, 4, 2]:</strong><br>
+          Step 1: Sort [3,1] → [1,3] &nbsp; Step 2: Sort [4,2] → [2,4]<br>
+          Now merge [1,3] and [2,4] using odd-even merge:<br>
+          — Odd sub-merge: [1] and [2] → [1,2]<br>
+          — Even sub-merge: [3] and [4] → [3,4]<br>
+          — Interleave: [1,3,2,4] &nbsp; — Final compare-swap: [1,2,3,4] ✓
+        </div>
+      </div>
+
+      <div class="lec-section" id="l1s5">
+        <h3>5. The 0-1 Principle — Proving Correctness</h3>
+        <p>How do we prove a sorting network sorts <em>all</em> inputs correctly without testing every possible permutation? The <strong>0-1 Principle</strong> gives us a shortcut:</p>
+        <div class="key-concept">
+          <strong>0-1 Principle (Knuth, 1973)</strong>
+          A comparison network correctly sorts all inputs of arbitrary values <em>if and only if</em> it correctly sorts all binary (0/1) inputs. There are only 2<sup>n</sup> binary inputs — far fewer than n! permutations!
+        </div>
+        <p>The proof relies on the fact that any monotone function f (like "≥ threshold") applied element-wise to the input produces a consistently mapped output. If the network sorts all binary sequences, it must sort all sequences of any comparable values.</p>
+        <p>In the visualization, you can activate <strong>0-1 Test Mode</strong> to cycle through all binary inputs and verify the network sorts each one correctly.</p>
+      </div>
+
+      <div class="lec-section" id="l1s6">
+        <h3>6. Complexity Analysis</h3>
+        <table class="lec-table">
+          <tr><th>Metric</th><th>Odd-Even Merge Sort</th><th>Bitonic Sort</th></tr>
+          <tr><td>Total Comparators</td><td>O(n log²n)</td><td>O(n log²n)</td></tr>
+          <tr><td>Depth (parallel steps)</td><td>O(log²n)</td><td>O(log²n)</td></tr>
+          <tr><td>Exact comparators (n=8)</td><td>19</td><td>24</td></tr>
+          <tr><td>Exact comparators (n=16)</td><td>63</td><td>80</td></tr>
+          <tr><td>Data independence</td><td>Yes</td><td>Yes</td></tr>
+          <tr><td>Structure</td><td>Odd/Even split + merge</td><td>Bitonic sequences</td></tr>
+        </table>
+        <p>Both algorithms achieve the same <strong>asymptotic complexity</strong> O(n log²n) comparators and O(log²n) depth, which is optimal for oblivious comparison networks. However, odd-even merge sort typically uses <strong>fewer actual comparators</strong> for the same n.</p>
+      </div>
+
+      <div class="lec-section" id="l1s7">
+        <h3>7. Bitonic Sort vs Odd-Even Sort</h3>
+        <p><strong>Bitonic Sort</strong> works by constructing a bitonic sequence (first increasing then decreasing, or vice versa) and then sorting it. It requires the input size to be a power of 2 and generates comparator patterns with a distinctive "butterfly" shape.</p>
+        <p><strong>Odd-Even Merge Sort</strong> also requires power-of-2 sizes, but uses the odd/even split merge strategy. The two algorithms produce different comparator diagrams and different intermediate sorted states, even though their asymptotic complexity is identical.</p>
+        <div class="callout-box">
+          <strong style="color:var(--accent)">Side-by-Side Comparison:</strong> The tool below shows both networks simultaneously on the same input, with live comparator counts so you can see exactly where the constant-factor difference comes from.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l1s8">
+        <h3>8. Interactive Tool — How to Use</h3>
+        <p>1. Enter your own array or click a <strong>Quick Example</strong> preset.<br>
+           2. Click <strong>Build Steps</strong> to generate all comparator steps.<br>
+           3. Use <strong>Step</strong> for line-by-line teaching, or <strong>Play</strong> for continuous animation.<br>
+           4. Watch the wiring diagram animate — odd wires in <span style="color:var(--c-odd)">blue</span>, even wires in <span style="color:var(--c-even)">orange</span>.<br>
+           5. The pseudocode panel highlights the current line; the explanation box gives a plain-English description with actual values.<br>
+           6. Check the comparison counter and compare it to bitonic sort's count on the right.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="tool-layout">
+
+    <!-- ── Left: Controls ── -->
+    <div class="left-panel">
+
+      <!-- Input -->
+      <div class="panel-section">
+        <div class="panel-section-title">Input Array</div>
+        <label for="p1-input">Custom Array (comma-separated)</label>
+        <input type="text" id="p1-input" value="5, 3, 8, 1, 9, 2, 7, 4" placeholder="e.g. 5, 3, 8, 1, 9, 2, 7, 4">
+        <div class="preset-grid" style="margin-top:10px;">
+          <div style="font-size:11px;color:var(--text3);width:100%;margin-bottom:2px;">Quick Examples</div>
+          <button class="preset-btn" onclick="loadPreset1([5,3,8,1,9,2,7,4])">Preset 1 (8 el.)</button>
+          <button class="preset-btn" onclick="loadPreset1([4,3,2,1,8,7,6,5])">Reverse halves</button>
+          <button class="preset-btn" onclick="loadPreset1([1,2,3,4,5,6,7,8])">Already sorted</button>
+          <button class="preset-btn" onclick="loadPreset1([8,7,6,5,4,3,2,1])">Reverse sorted</button>
+          <button class="preset-btn" onclick="loadPreset1(randomArr1(8))">Random (8)</button>
+          <button class="preset-btn" onclick="loadPreset1(randomArr1(16))">Random (16)</button>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="panel-section">
+        <div class="panel-section-title">Playback Speed</div>
+        <div class="speed-row">
+          <span style="font-size:11px;color:var(--text3)">0.25×</span>
+          <input type="range" id="p1-speed" min="0.25" max="4" step="0.25" value="1" oninput="updateSpeedLabel(1)">
+          <span style="font-size:11px;color:var(--text3)">4×</span>
+          <span class="speed-label" id="p1-speed-label">1.0×</span>
+        </div>
+      </div>
+
+      <!-- Playback -->
+      <div class="panel-section">
+        <div class="panel-section-title">Playback Controls</div>
+        <div class="playback-row">
+          <button class="btn primary" id="p1-build" onclick="p1Build()">Build Steps</button>
+          <button class="btn" id="p1-step" onclick="p1Step()" disabled>Step</button>
+          <button class="btn" id="p1-play" onclick="p1Play()" disabled>Play</button>
+          <button class="btn" id="p1-pause" onclick="p1Pause()" disabled>Pause</button>
+          <button class="btn" id="p1-reset" onclick="p1Reset()" disabled>Reset</button>
+        </div>
+        <div class="status-row" style="margin-top:10px;">
+          <div class="status-item">
+            <span class="s-label">Step</span>
+            <span class="s-value" id="p1-step-counter">0 / 0</span>
+          </div>
+          <div class="status-item">
+            <span class="s-label">Status</span>
+            <span class="s-value" id="p1-status">Idle</span>
+          </div>
+        </div>
+        <div class="stats-row" style="margin-top:8px;">
+          <div class="stat-box">
+            <span class="s-label">Comparisons</span>
+            <span class="s-value" id="p1-comparisons">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="s-label">Swaps</span>
+            <span class="s-value" id="p1-swaps">0</span>
+          </div>
+        </div>
+        <div class="tip-text" style="margin-top:10px;">
+          Tip: Click <strong>Build Steps</strong> after changing the array. Use <strong>Step</strong> to teach line-by-line.
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+            <input type="checkbox" id="p1-01-mode" onchange="toggleZeroOneMode1()" style="width:auto;">
+            0-1 Principle verification mode
+          </label>
+          <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+            <select id="p1-01-size" disabled style="max-width:120px;">
+              <option value="4">n = 4 (16 cases)</option>
+              <option value="8" selected>n = 8 (256 cases)</option>
+            </select>
+            <button class="preset-btn" id="p1-01-run" onclick="p1RunZeroOne()" disabled>Run 0-1 test</button>
+          </div>
+          <div class="tip-text" id="p1-01-result" style="margin-top:8px;">
+            Enable 0-1 mode to exhaustively verify all binary inputs.
+          </div>
+        </div>
+      </div>
+
+      <!-- Pseudocode -->
+      <div class="panel-section">
+        <div class="panel-section-title">Pseudocode</div>
+        <div class="pseudocode-block" id="p1-pseudocode">
+          <div class="pc-line" id="pc1-0" title="Entry point: sort array A from index lo to hi"><span class="pc-num">1</span><span class="pc-code">ODD-EVEN-SORT(A, lo, hi):</span></div>
+          <div class="pc-line" id="pc1-1" title="Base case: one element is already sorted"><span class="pc-num">2</span><span class="pc-code">  if hi - lo ≤ 1: return</span></div>
+          <div class="pc-line" id="pc1-2" title="Find the midpoint to split the array"><span class="pc-num">3</span><span class="pc-code">  mid = (lo + hi) / 2</span></div>
+          <div class="pc-line" id="pc1-3" title="Recursively sort the first half"><span class="pc-num">4</span><span class="pc-code">  ODD-EVEN-SORT(A, lo, mid)</span></div>
+          <div class="pc-line" id="pc1-4" title="Recursively sort the second half"><span class="pc-num">5</span><span class="pc-code">  ODD-EVEN-SORT(A, mid, hi)</span></div>
+          <div class="pc-line" id="pc1-5" title="Merge the two sorted halves using odd-even merge"><span class="pc-num">6</span><span class="pc-code">  ODD-EVEN-MERGE(A, lo, hi, 1)</span></div>
+          <div class="pc-line" id="pc1-6" title="Merge two sorted sub-sequences"><span class="pc-num">7</span><span class="pc-code">ODD-EVEN-MERGE(lo, hi, step):</span></div>
+          <div class="pc-line" id="pc1-7" title="half = next level step size"><span class="pc-num">8</span><span class="pc-code">  half = step * 2</span></div>
+          <div class="pc-line" id="pc1-8" title="Recursive case: more than one pair remains"><span class="pc-num">9</span><span class="pc-code">  if half &lt; hi - lo:</span></div>
+          <div class="pc-line" id="pc1-9" title="Recursively merge odd-indexed sub-sequence"><span class="pc-num">10</span><span class="pc-code">    MERGE(lo, hi, half)     // odd</span></div>
+          <div class="pc-line" id="pc1-10" title="Recursively merge even-indexed sub-sequence"><span class="pc-num">11</span><span class="pc-code">    MERGE(lo+step, hi, half) // even</span></div>
+          <div class="pc-line" id="pc1-11" title="Apply final compare-swap layer on adjacent pairs"><span class="pc-num">12</span><span class="pc-code">    for i = lo+step to hi-step step 2*step:</span></div>
+          <div class="pc-line" id="pc1-12" title="Compare and swap adjacent wire pair"><span class="pc-num">13</span><span class="pc-code">      COMPARE-SWAP(i, i+step)</span></div>
+          <div class="pc-line" id="pc1-13" title="Base case: single comparator"><span class="pc-num">14</span><span class="pc-code">  else: COMPARE-SWAP(lo, lo+step)</span></div>
+        </div>
+      </div>
+
+      <!-- Step explanation -->
+      <div class="panel-section">
+        <div class="panel-section-title">Step Explanation</div>
+        <div class="step-explanation" id="p1-explanation">
+          <strong>🎓 Step Explanation:</strong> Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to see line-by-line explanations of what the algorithm is doing and why.
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="panel-section">
+        <div class="panel-section-title">Step History</div>
+        <div class="history-table-wrap">
+          <table class="history-table" id="p1-history">
+            <thead><tr><th>#</th><th>Phase</th><th>Action</th><th>Values</th></tr></thead>
+            <tbody id="p1-history-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /left-panel -->
+
+    <!-- ── Right: Visualization ── -->
+    <div class="right-panel">
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--c-normal)"></div>Normal wire</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--c-odd)"></div>Odd-indexed</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--c-even)"></div>Even-indexed</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--c-compare)"></div>Comparing</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--c-swap)"></div>Swapped</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--c-sorted)"></div>Sorted</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--c-active)"></div>Active merge</div>
+      </div>
+
+      <!-- Main SVG -->
+      <div class="viz-canvas">
+        <svg id="main-svg" viewBox="0 0 800 400" style="min-height:300px;"></svg>
+      </div>
+
+      <!-- Bitonic comparison -->
+      <div class="compare-pane">
+        <h4>Side-by-Side Comparator Count Comparison</h4>
+        <div class="compare-grid">
+          <div class="compare-box">
+            <div class="algo-name">Odd-Even Merge</div>
+            <div class="algo-stat" id="oe-count">—</div>
+            <div class="algo-stat-label">total comparators</div>
+          </div>
+          <div class="compare-box">
+            <div class="algo-name" style="color:var(--text2)">Bitonic Sort</div>
+            <div class="algo-stat" id="bi-count" style="color:var(--orange)">—</div>
+            <div class="algo-stat-label">total comparators</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--text3);line-height:1.5;" id="compare-note">
+          Enter an array and click Build Steps to see the comparator counts.
+        </div>
+      </div>
+
+      <!-- Bitonic SVG -->
+      <div class="compare-pane">
+        <h4>Bitonic Network (same input)</h4>
+        <div class="viz-canvas">
+          <svg id="bitonic-svg" viewBox="0 0 800 300" style="min-height:220px;"></svg>
+        </div>
+      </div>
+
+    </div><!-- /right-panel -->
+  </div><!-- /tool-layout -->
+
+</section><!-- /part1 -->
+
+
+<!-- ══════════════════════════════════════
+     PART 2 — FFT (placeholder)
+══════════════════════════════════════ -->
+<section class="part-section" id="part2">
+
+  <!-- Lecture Notes -->
+  <div class="lecture-notes">
+    <div class="lecture-notes-header" onclick="toggleLecture('lec2')">
+      <h2>📖 Lecture Notes — FFT: Polynomial Multiplication &nbsp;<span style="font-size:11px;font-weight:400;color:var(--text3)">Start Here</span></h2>
+      <button class="collapse-btn" id="lec2-btn">Collapse</button>
+    </div>
+    <div class="lecture-body" id="lec2">
+      <div class="roadmap">
+        <strong style="font-size:11px;color:var(--text2);margin-right:6px;">Learning Roadmap:</strong>
+        <a href="#l2s1"><strong>1.</strong> The Polynomial Multiplication Problem</a> &nbsp;·&nbsp;
+        <a href="#l2s2"><strong>2.</strong> Naïve O(n²) Approach</a> &nbsp;·&nbsp;
+        <a href="#l2s3"><strong>3.</strong> Roots of Unity</a> &nbsp;·&nbsp;
+        <a href="#l2s4"><strong>4.</strong> The FFT Idea</a> &nbsp;·&nbsp;
+        <a href="#l2s5"><strong>5.</strong> Butterfly Operations</a> &nbsp;·&nbsp;
+        <a href="#l2s6"><strong>6.</strong> The 3-Step Process</a> &nbsp;·&nbsp;
+        <a href="#l2s7"><strong>7.</strong> Inverse FFT</a> &nbsp;·&nbsp;
+        <a href="#l2s8"><strong>8.</strong> Complexity Analysis</a> &nbsp;·&nbsp;
+        <a href="#l2s9"><strong>9.</strong> Interactive Tool</a>
+      </div>
+
+      <div class="lec-section" id="l2s1">
+        <h3>1. The Polynomial Multiplication Problem</h3>
+        <p>Given two polynomials <strong>A(x) = a₀ + a₁x + a₂x² + … + aₙ₋₁xⁿ⁻¹</strong> and <strong>B(x) = b₀ + b₁x + … + bₙ₋₁xⁿ⁻¹</strong>, compute their product <strong>C(x) = A(x) · B(x)</strong>.</p>
+        <p>The result C(x) has degree up to 2n−2 and its coefficients are given by the <strong>convolution</strong>: cₖ = Σ aᵢ · bₖ₋ᵢ. This operation appears everywhere: signal processing (convolution of two signals), number multiplication (integers are base-10 polynomials), image filtering, and cryptography.</p>
+        <div class="key-concept">
+          <strong>Why This Matters</strong>
+          The naïve algorithm for computing cₖ requires O(n²) multiplications — computing each of the 2n coefficients of C requires up to n multiplications. For large n (e.g., n = 10⁶), this is 10¹² operations. FFT reduces this to O(n log n) — about 20 million operations. That's a 50,000× speedup.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l2s2">
+        <h3>2. Naïve O(n²) Coefficient Multiplication</h3>
+        <pre class="pseudocode-lec">NAIVE-MULTIPLY(A[0..n-1], B[0..n-1]):
+    C = array of zeros of size 2n-1
+    for i = 0 to n-1:
+        for j = 0 to n-1:
+            C[i+j] += A[i] * B[j]    // n² multiplications total
+    return C</pre>
+        <p>For each output coefficient C[k], we sum all products A[i]·B[k−i]. This is straightforward but requires <strong>n² multiplications</strong> and <strong>n² additions</strong>. The visualization shows this approach so you can compare the operation count directly with FFT.</p>
+      </div>
+
+      <div class="lec-section" id="l2s3">
+        <h3>3. Roots of Unity — The Key Ingredient</h3>
+        <p>The <strong>n-th roots of unity</strong> are the n complex numbers ω⁰, ω¹, ω², …, ωⁿ⁻¹ where ω = e^(2πi/n) = cos(2π/n) + i·sin(2π/n). They are evenly spaced on the unit circle in the complex plane.</p>
+        <div class="key-concept">
+          <strong>The Cancellation Lemma</strong>
+          ω^(n/2) = −1, which means (ω^k)^(n/2) = (−1)^k. This causes massive cancellations when we split a DFT of size n into two DFTs of size n/2, because the twiddle factors for the second half are just the negatives of the first half.
+        </div>
+        <div class="key-concept">
+          <strong>The Halving Lemma</strong>
+          The squares of the n-th roots of unity are exactly the n/2 roots of unity: {(ω^k)²} = {ω²^k} and ω² = e^(2πi·2/n) = e^(2πi/(n/2)). This means squaring the n twiddle factors gives exactly the n/2 twiddle factors for a problem of half the size — enabling the divide-and-conquer recursion.
+        </div>
+        <p>The unit circle visualization shows these roots as colored dots. Watch them appear and notice the symmetry: roots on the left are the negatives of roots on the right (they are π apart).</p>
+      </div>
+
+      <div class="lec-section" id="l2s4">
+        <h3>4. The FFT Idea — Evaluate, Don't Convolve</h3>
+        <p>Instead of multiplying polynomials coefficient-by-coefficient, FFT uses a different representation. A polynomial of degree n−1 is <strong>uniquely determined by its values at n points</strong>. So instead of convolving coefficients, we can:</p>
+        <pre class="pseudocode-lec">Step 1 — EVALUATE:   Compute A(ωᵏ) and B(ωᵏ) for k=0..2n-1  [O(n log n)]
+Step 2 — POINTWISE:  C(ωᵏ) = A(ωᵏ) · B(ωᵏ) for each k      [O(n)]
+Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</pre>
+        <p>The magic is that step 1 and step 3 can both be done in O(n log n) using the FFT — which exploits the special structure of the roots of unity to avoid redundant work.</p>
+      </div>
+
+      <div class="lec-section" id="l2s5">
+        <h3>5. Butterfly Operations — The FFT Mechanism</h3>
+        <p>The FFT uses <strong>divide and conquer</strong>: split polynomial A(x) into its even-indexed coefficients A_even(x²) = a₀ + a₂x² + a₄x⁴ + … and odd-indexed A_odd(x²) = a₁ + a₃x² + …, so A(x) = A_even(x²) + x·A_odd(x²).</p>
+        <p>At each level of the recursion, values from the two halves are combined using a <strong>butterfly operation</strong>:</p>
+        <pre class="pseudocode-lec">BUTTERFLY(a, b, ω):           // ω = twiddle factor at this level
+    t = ω · b
+    upper = a + t             // "top" output
+    lower = a - t             // "bottom" output
+    return (upper, lower)</pre>
+        <div class="key-concept">
+          <strong>Why "Butterfly"?</strong>
+          The data flow diagram looks like a butterfly: two inputs cross over, each output is a sum/difference of one original value and a twiddle-factor-scaled version of the other. The butterfly is the core O(1) operation; there are O(n log n) butterflies total.
+        </div>
+        <div class="callout-box green">
+          <strong style="color:var(--green)">The Full Recurrence:</strong> T(n) = 2T(n/2) + O(n). Each level of the recursion does O(n) butterfly operations, and there are log₂(n) levels, giving O(n log n) total work. The recurrence is identical to merge sort!
+        </div>
+      </div>
+
+      <div class="lec-section" id="l2s6">
+        <h3>6. The 3-Step Process — Full Walkthrough</h3>
+        <p><strong>Example:</strong> Multiply A(x) = 1 + 2x + 3x² by B(x) = 4 + 5x (result: 4 + 13x + 22x² + 15x³)</p>
+        <table class="lec-table">
+          <tr><th>Step</th><th>Operation</th><th>Input</th><th>Output</th><th>Cost</th></tr>
+          <tr><td>1a</td><td>Pad to 2n</td><td>[1,2,3,0]  [4,5,0,0]</td><td>Both length 4</td><td>O(n)</td></tr>
+          <tr><td>1b</td><td>FFT(A)</td><td>[1,2,3,0]</td><td>[6, -2+2i, -2, -2-2i]</td><td>O(n log n)</td></tr>
+          <tr><td>1c</td><td>FFT(B)</td><td>[4,5,0,0]</td><td>[9, 4-5i, -1, 4+5i]</td><td>O(n log n)</td></tr>
+          <tr><td>2</td><td>Pointwise ×</td><td>FFT(A) · FFT(B)</td><td>[54, -18+3i, 2, -18-3i]</td><td>O(n)</td></tr>
+          <tr><td>3</td><td>IFFT</td><td>[54, -18+3i, 2, -18-3i]</td><td>[4, 13, 22, 15]</td><td>O(n log n)</td></tr>
+        </table>
+        <p>The final coefficients [4, 13, 22, 15] represent 4 + 13x + 22x² + 15x³ — the correct product!</p>
+      </div>
+
+      <div class="lec-section" id="l2s7">
+        <h3>7. Inverse FFT</h3>
+        <p>The IFFT recovers coefficients from point values. Remarkably, it is almost identical to the FFT — just replace ω with ω⁻¹ = e^(−2πi/n) and divide the final result by n:</p>
+        <pre class="pseudocode-lec">IFFT(Y[0..n-1]):
+    result = FFT(Y, use ω⁻¹ instead of ω)
+    for k = 0 to n-1:
+        result[k] = result[k] / n
+    return result</pre>
+        <p>This works because the DFT matrix is a Vandermonde matrix of ω values, and its inverse is obtained by conjugating ω and scaling by 1/n. The symmetry between FFT and IFFT is one of the most beautiful results in computational mathematics.</p>
+      </div>
+
+      <div class="lec-section" id="l2s8">
+        <h3>8. Complexity Analysis</h3>
+        <table class="lec-table">
+          <tr><th>Algorithm</th><th>Multiplications</th><th>Additions</th><th>Total</th></tr>
+          <tr><td>Naïve convolution</td><td>n²</td><td>n²</td><td>O(n²)</td></tr>
+          <tr><td>FFT-based</td><td>½n log₂n (butterflies)</td><td>n log₂n</td><td>O(n log n)</td></tr>
+        </table>
+        <div class="callout-box yellow">
+          <strong style="color:var(--yellow)">Concrete numbers (n=1024):</strong> Naïve needs ~1,048,576 multiplications. FFT needs ~5,120 butterfly operations — roughly 200× faster. At n=1,000,000, the speedup is ~50,000×.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l2s9">
+        <h3>9. Interactive Tool — How to Use</h3>
+        <p>1. Enter two polynomials as coefficient arrays (constant term first) or click a <strong>Quick Example</strong>.<br>
+           2. Click <strong>Build Steps</strong> to generate all FFT computation steps.<br>
+           3. Use <strong>Step</strong> to go level by level, watching the butterfly diagram animate.<br>
+           4. Phase 1 (blue) = FFT evaluation; Phase 2 (green) = pointwise multiply; Phase 3 (purple) = IFFT.<br>
+           5. Watch the unit circle show where evaluation points lie.<br>
+           6. The complexity comparison shows live operation counts for both naïve and FFT approaches.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="tool-layout">
+
+    <!-- ── Left: Controls ── -->
+    <div class="left-panel">
+
+      <!-- Input -->
+      <div class="panel-section">
+        <div class="panel-section-title">Polynomial Inputs</div>
+        <label for="p2-polyA">Polynomial A — coefficients a₀,a₁,a₂,… (constant term first)</label>
+        <input type="text" id="p2-polyA" value="1, 2, 3" placeholder="e.g. 1, 2, 3  →  1 + 2x + 3x²">
+        <label for="p2-polyB" style="margin-top:8px;">Polynomial B — coefficients b₀,b₁,b₂,…</label>
+        <input type="text" id="p2-polyB" value="4, 5" placeholder="e.g. 4, 5  →  4 + 5x">
+        <div id="p2-poly-display" style="margin-top:8px;font-size:12px;color:var(--text2);font-family:Consolas,monospace;line-height:1.8;"></div>
+        <div class="preset-grid" style="margin-top:8px;">
+          <div style="font-size:11px;color:var(--text3);width:100%;margin-bottom:2px;">Quick Examples</div>
+          <button class="preset-btn" onclick="loadPreset2([1,2,3],[4,5])">Linear × Quadratic</button>
+          <button class="preset-btn" onclick="loadPreset2([1,1],[1,1])">x+1 squared</button>
+          <button class="preset-btn" onclick="loadPreset2([1,0,1],[1,0,1])">x²+1 squared</button>
+          <button class="preset-btn" onclick="loadPreset2([1,2,3,4],[1,-1,1,-1])">Degree-3 × Degree-3</button>
+          <button class="preset-btn" onclick="loadPreset2([3,0,2,0,1],[1,0,4])">Sparse polynomials</button>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="panel-section">
+        <div class="panel-section-title">Playback Speed</div>
+        <div class="speed-row">
+          <span style="font-size:11px;color:var(--text3)">0.25×</span>
+          <input type="range" id="p2-speed" min="0.25" max="4" step="0.25" value="1" oninput="updateSpeedLabel(2)">
+          <span style="font-size:11px;color:var(--text3)">4×</span>
+          <span class="speed-label" id="p2-speed-label">1.0×</span>
+        </div>
+      </div>
+
+      <!-- Playback -->
+      <div class="panel-section">
+        <div class="panel-section-title">Playback Controls</div>
+        <div class="playback-row">
+          <button class="btn primary" id="p2-build" onclick="p2Build()">Build Steps</button>
+          <button class="btn" id="p2-step" onclick="p2Step()" disabled>Step</button>
+          <button class="btn" id="p2-play" onclick="p2Play()" disabled>Play</button>
+          <button class="btn" id="p2-pause" onclick="p2Pause()" disabled>Pause</button>
+          <button class="btn" id="p2-reset" onclick="p2Reset()" disabled>Reset</button>
+        </div>
+        <div class="status-row" style="margin-top:10px;">
+          <div class="status-item">
+            <span class="s-label">Step</span>
+            <span class="s-value" id="p2-step-counter">0 / 0</span>
+          </div>
+          <div class="status-item">
+            <span class="s-label">Status</span>
+            <span class="s-value" id="p2-status">Idle</span>
+          </div>
+        </div>
+        <div class="stats-row" style="margin-top:8px;">
+          <div class="stat-box">
+            <span class="s-label">Butterflies</span>
+            <span class="s-value" id="p2-butterflies">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="s-label">Mults</span>
+            <span class="s-value" id="p2-mults">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="s-label">Phase</span>
+            <span class="s-value" id="p2-phase-label" style="font-size:11px;">—</span>
+          </div>
+        </div>
+        <div class="tip-text" style="margin-top:10px;">
+          Tip: Click <strong>Build Steps</strong> after changing polynomials. Watch the 3-phase animation: <span style="color:#58a6ff">FFT</span> → <span style="color:#3fb950">Multiply</span> → <span style="color:#bc8cff">IFFT</span>.
+        </div>
+      </div>
+
+      <!-- Visualization options -->
+      <div class="panel-section">
+        <div class="panel-section-title">Visualization Options</div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="p2-show-splittree" onchange="toggleSplitTree2()" style="width:auto;">
+          <span style="font-size:12px;color:var(--text2);">Show recursive split tree (even/odd)</span>
+        </label>
+        <div class="tip-text" style="margin-top:8px;">
+          Shows divide-and-conquer splitting groups for each FFT level.
+        </div>
+      </div>
+
+      <!-- Pseudocode -->
+      <div class="panel-section">
+        <div class="panel-section-title">Pseudocode</div>
+        <div class="pseudocode-block" id="p2-pseudocode">
+          <div class="pc-line" id="pc2-0" title="Main entry: multiply two polynomials using FFT"><span class="pc-num">1</span><span class="pc-code">FFT-MULTIPLY(A, B):</span></div>
+          <div class="pc-line" id="pc2-1" title="Pad both arrays to next power of 2 ≥ 2n"><span class="pc-num">2</span><span class="pc-code">  n = next_pow2(len(A)+len(B)-1)</span></div>
+          <div class="pc-line" id="pc2-2" title="Phase 1a: Evaluate A at all n-th roots of unity"><span class="pc-num">3</span><span class="pc-code">  FA = FFT(A, n)      // evaluate A</span></div>
+          <div class="pc-line" id="pc2-3" title="Phase 1b: Evaluate B at all n-th roots of unity"><span class="pc-num">4</span><span class="pc-code">  FB = FFT(B, n)      // evaluate B</span></div>
+          <div class="pc-line" id="pc2-4" title="Phase 2: Pointwise multiply in O(n)"><span class="pc-num">5</span><span class="pc-code">  FC[k] = FA[k]*FB[k] // pointwise</span></div>
+          <div class="pc-line" id="pc2-5" title="Phase 3: Recover coefficients via inverse FFT"><span class="pc-num">6</span><span class="pc-code">  C = IFFT(FC, n)     // interpolate</span></div>
+          <div class="pc-line" id="pc2-6" title="Return the result polynomial"><span class="pc-num">7</span><span class="pc-code">  return C</span></div>
+          <div class="pc-line" id="pc2-7" title="Recursive FFT — Cooley-Tukey algorithm"><span class="pc-num">8</span><span class="pc-code">FFT(a[0..n-1], inverse):</span></div>
+          <div class="pc-line" id="pc2-8" title="Base case: single element"><span class="pc-num">9</span><span class="pc-code">  if n==1: return a</span></div>
+          <div class="pc-line" id="pc2-9" title="Split into even-indexed and odd-indexed coefficients"><span class="pc-num">10</span><span class="pc-code">  a_even = a[0,2,4,...]; a_odd = a[1,3,5,...]</span></div>
+          <div class="pc-line" id="pc2-10" title="Recursively compute FFT of each half"><span class="pc-num">11</span><span class="pc-code">  y_even = FFT(a_even); y_odd = FFT(a_odd)</span></div>
+          <div class="pc-line" id="pc2-11" title="Compute twiddle factor: ω = e^(±2πi/n)"><span class="pc-num">12</span><span class="pc-code">  ω = e^(2πi/n) (or e^(-2πi/n) for IFFT)</span></div>
+          <div class="pc-line" id="pc2-12" title="Apply butterfly operations to combine results"><span class="pc-num">13</span><span class="pc-code">  for k=0 to n/2-1:</span></div>
+          <div class="pc-line" id="pc2-13" title="Butterfly: t = twiddle × odd half value"><span class="pc-num">14</span><span class="pc-code">    t = ω^k · y_odd[k]</span></div>
+          <div class="pc-line" id="pc2-14" title="Upper output: sum of even and scaled odd"><span class="pc-num">15</span><span class="pc-code">    y[k]     = y_even[k] + t</span></div>
+          <div class="pc-line" id="pc2-15" title="Lower output: difference — the 'butterfly'"><span class="pc-num">16</span><span class="pc-code">    y[k+n/2] = y_even[k] - t</span></div>
+        </div>
+      </div>
+
+      <!-- Step explanation -->
+      <div class="panel-section">
+        <div class="panel-section-title">Step Explanation</div>
+        <div class="step-explanation" id="p2-explanation">
+          <strong>🎓 Step Explanation:</strong> Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to watch the FFT evaluate both polynomials, multiply pointwise, and recover the product via IFFT.
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="panel-section">
+        <div class="panel-section-title">Step History</div>
+        <div class="history-table-wrap">
+          <table class="history-table" id="p2-history">
+            <thead><tr><th>#</th><th>Phase</th><th>Action</th><th>Detail</th></tr></thead>
+            <tbody id="p2-history-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /left-panel -->
+
+    <!-- ── Right: Visualization ── -->
+    <div class="right-panel">
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#58a6ff"></div>FFT — evaluate A &amp; B</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#3fb950"></div>Pointwise multiply</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#bc8cff"></div>IFFT — interpolate C</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#d29922"></div>Active butterfly</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#f0883e"></div>Twiddle factor</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#f85149"></div>Result ready</div>
+      </div>
+
+      <!-- Unit Circle -->
+      <div class="viz-canvas" style="padding:12px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Unit Circle — n-th Roots of Unity</div>
+        <svg id="p2-circle-svg" viewBox="0 0 520 220" style="display:block;width:100%;max-height:220px;"></svg>
+      </div>
+
+      <!-- Butterfly Diagram -->
+      <div class="viz-canvas" style="padding:12px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Butterfly Network — FFT Data Flow</div>
+        <svg id="p2-butterfly-svg" viewBox="0 0 760 320" style="display:block;width:100%;min-height:200px;"></svg>
+      </div>
+
+      <!-- Recursive Split Tree -->
+      <div class="viz-canvas" id="p2-splittree-wrap" style="padding:12px;display:none;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Recursive Split Tree — Even/Odd Divide</div>
+        <svg id="p2-splittree-svg" viewBox="0 0 760 420" style="display:block;width:100%;min-height:240px;"></svg>
+      </div>
+
+      <!-- Result display -->
+      <div class="compare-pane">
+        <h4>Multiplication Result &amp; Complexity Comparison</h4>
+        <div id="p2-result-display" style="font-family:Consolas,monospace;font-size:13px;color:var(--text2);padding:10px 0;min-height:48px;">
+          Enter polynomials and click Build Steps to see the result.
+        </div>
+        <div class="compare-grid" style="margin-top:10px;">
+          <div class="compare-box">
+            <div class="algo-name" style="color:#58a6ff">FFT Convolution</div>
+            <div class="algo-stat" id="p2-fft-ops" style="color:#58a6ff">—</div>
+            <div class="algo-stat-label">O(n log n) operations</div>
+          </div>
+          <div class="compare-box">
+            <div class="algo-name">Naïve Convolution</div>
+            <div class="algo-stat" id="p2-naive-ops">—</div>
+            <div class="algo-stat-label">O(n²) operations</div>
+          </div>
+        </div>
+        <div id="p2-speedup-note" style="margin-top:10px;font-size:11px;color:var(--text3);"></div>
+        <div style="margin-top:6px;font-size:10px;color:var(--text3);line-height:1.5;">
+          Numerical note: FFT uses floating-point arithmetic in this visualizer, so tiny rounding noise can appear for larger coefficient sets.
+        </div>
+      </div>
+
+    </div><!-- /right-panel -->
+  </div><!-- /tool-layout -->
+
+</section>
+
+<!-- ══════════════════════════════════════
+     PART 3 — MILLER-RABIN PRIMALITY TEST
+══════════════════════════════════════ -->
+<section class="part-section" id="part3">
+
+  <!-- Lecture Notes -->
+  <div class="lecture-notes">
+    <div class="lecture-notes-header" onclick="toggleLecture('lec3')">
+      <h2>📖 Lecture Notes — Miller-Rabin Primality Testing &nbsp;<span style="font-size:11px;font-weight:400;color:var(--text3)">Start Here</span></h2>
+      <button class="collapse-btn" id="lec3-btn">Collapse</button>
+    </div>
+    <div class="lecture-body" id="lec3">
+      <div class="roadmap">
+        <strong style="font-size:11px;color:var(--text2);margin-right:6px;">Learning Roadmap:</strong>
+        <a href="#l3s1"><strong>1.</strong> Why Primality Testing Matters</a> &nbsp;·&nbsp;
+        <a href="#l3s2"><strong>2.</strong> Fermat's Little Theorem</a> &nbsp;·&nbsp;
+        <a href="#l3s3"><strong>3.</strong> Carmichael Numbers — Fermat's Weakness</a> &nbsp;·&nbsp;
+        <a href="#l3s4"><strong>4.</strong> The Miller-Rabin Insight</a> &nbsp;·&nbsp;
+        <a href="#l3s5"><strong>5.</strong> Decomposing n−1 = 2ˢ·d</a> &nbsp;·&nbsp;
+        <a href="#l3s6"><strong>6.</strong> The Squaring Chain</a> &nbsp;·&nbsp;
+        <a href="#l3s7"><strong>7.</strong> Multiple Rounds &amp; Confidence</a> &nbsp;·&nbsp;
+        <a href="#l3s8"><strong>8.</strong> Modular Exponentiation</a> &nbsp;·&nbsp;
+        <a href="#l3s9"><strong>9.</strong> Interactive Tool</a>
+      </div>
+
+      <div class="lec-section" id="l3s1">
+        <h3>1. Why Primality Testing Matters</h3>
+        <p>Primality testing is the foundation of modern cryptography. <strong>RSA encryption</strong> requires generating two large random primes p and q (typically 1024–4096 bits each). To generate them, we pick random odd numbers and test them for primality until we find one that passes.</p>
+        <p>Naïve trial division up to √n is completely impractical for 2048-bit numbers — √(2²⁰⁴⁸) ≈ 2¹⁰²⁴, which is more atoms than in the observable universe. We need a fundamentally different approach.</p>
+        <div class="key-concept">
+          <strong>The Goal</strong>
+          Given a large odd integer n, determine whether it is prime — <em>fast</em>. Miller-Rabin does this in O(k · log²n) time where k is the number of rounds. For k=40 rounds, the probability of a false positive is at most 4⁻⁴⁰ ≈ 10⁻²⁴ — effectively zero.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s2">
+        <h3>2. Fermat's Little Theorem</h3>
+        <p>The basis for many primality tests is <strong>Fermat's Little Theorem</strong>: if p is prime and gcd(a, p) = 1, then a^(p−1) ≡ 1 (mod p). In other words, raising any non-multiple of p to the power p−1 gives 1 mod p.</p>
+        <p>The <strong>Fermat primality test</strong>: pick a random witness a, compute a^(n−1) mod n. If the result ≠ 1, then n is definitely composite. If it equals 1, then n is <em>probably</em> prime.</p>
+        <div class="callout-box yellow">
+          <strong style="color:var(--yellow)">The Problem:</strong> Some composite numbers pass the Fermat test for <em>every</em> possible witness a with gcd(a,n)=1. These are called <strong>Carmichael numbers</strong>. The smallest is 561 = 3×11×17. No matter which witness you pick, 561 looks prime to Fermat's test — yet it's clearly composite!
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s3">
+        <h3>3. Carmichael Numbers — Fermat's Fatal Weakness</h3>
+        <p>A <strong>Carmichael number</strong> satisfies a^(n−1) ≡ 1 (mod n) for all a with gcd(a,n)=1, even though n is composite. The first few are: 561, 1105, 1729, 2465, 2821, 6601, …</p>
+        <pre class="pseudocode-lec">For n = 561 = 3 × 11 × 17:
+  Fermat test with a=2: 2^560 mod 561 = 1  ← looks prime!
+  Fermat test with a=5: 5^560 mod 561 = 1  ← looks prime!
+  Fermat test with a=10: 10^560 mod 561 = 1 ← looks prime!
+  ...every valid witness gives 1 — yet 561 is composite.</pre>
+        <p>Miller-Rabin <strong>catches all Carmichael numbers</strong> by going one step further: it doesn't just check a^(n−1) ≡ 1, it also examines the <em>sequence of square roots</em> leading up to that result.</p>
+      </div>
+
+      <div class="lec-section" id="l3s4">
+        <h3>4. The Miller-Rabin Insight — Square Roots of 1</h3>
+        <p>The key mathematical fact: <strong>in ℤₚ* (where p is prime), the only square roots of 1 are +1 and −1</strong>. That is, if x² ≡ 1 (mod p), then x ≡ ±1 (mod p).</p>
+        <p>This is because x² − 1 = (x−1)(x+1) ≡ 0 (mod p), and since p is prime, p must divide one of the factors — so x ≡ 1 or x ≡ −1 ≡ n−1 (mod n).</p>
+        <div class="key-concept">
+          <strong>Composite numbers can have "non-trivial" square roots of 1</strong>
+          For composite n, x² ≡ 1 (mod n) can have solutions other than ±1. Miller-Rabin exploits this: as we repeatedly square a^d mod n toward a^(n−1) ≡ 1, if we ever see a value that squares to 1 but is itself neither 1 nor n−1, we've found a non-trivial square root — proving n is composite!
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s5">
+        <h3>5. Decomposing n−1 = 2ˢ · d</h3>
+        <p>Since n is odd (all even numbers > 2 are composite), n−1 is even. We write it as <strong>n−1 = 2ˢ · d</strong> where d is odd, by factoring out all powers of 2.</p>
+        <pre class="pseudocode-lec">DECOMPOSE(n):
+    d = n - 1
+    s = 0
+    while d is even:
+        d = d / 2
+        s = s + 1
+    return (s, d)
+    // Result: n-1 = 2^s * d, where d is odd</pre>
+        <div class="callout-box green">
+          <strong style="color:var(--green)">Example: n = 221</strong><br>
+          n−1 = 220 = 4 × 55 = 2² × 55<br>
+          So s = 2, d = 55. We'll compute a^55 mod 221, then square twice.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s6">
+        <h3>6. The Squaring Chain — The Core Test</h3>
+        <p>For witness a, compute the <strong>squaring chain</strong>: a^d, a^(2d), a^(4d), …, a^(2ˢd) = a^(n−1), all mod n.</p>
+        <pre class="pseudocode-lec">MILLER-RABIN-WITNESS(n, a, s, d):
+    x = modpow(a, d, n)           // compute a^d mod n
+    if x == 1 or x == n-1:
+        return PROBABLY_PRIME      // passed this round
+    for r = 1 to s-1:
+        x = x*x mod n              // square: a^(2^r * d) mod n
+        if x == n-1:
+            return PROBABLY_PRIME  // found -1, chain is valid
+    return COMPOSITE               // reached 1 without seeing -1 first</pre>
+        <div class="key-concept">
+          <strong>Reading the Chain — 3 Cases</strong>
+          <br>• <strong style="color:#3fb950">a^d ≡ 1 (mod n):</strong> Passes immediately — consistent with primality.
+          <br>• <strong style="color:#3fb950">Some a^(2ʳd) ≡ −1 (mod n):</strong> Found the expected square root of 1 — passes.
+          <br>• <strong style="color:#f85149">Chain reaches 1 without ever seeing −1:</strong> Found a non-trivial √1 — n is COMPOSITE.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s7">
+        <h3>7. Multiple Rounds &amp; Confidence</h3>
+        <p>Each round uses a different random witness a. If n is composite, each witness independently has at least a 3/4 chance of detecting it. After k rounds:</p>
+        <table class="lec-table">
+          <tr><th>Rounds (k)</th><th>Max error probability</th><th>Use case</th></tr>
+          <tr><td>5</td><td>4⁻⁵ ≈ 0.1%</td><td>Quick check only</td></tr>
+          <tr><td>10</td><td>4⁻¹⁰ ≈ 10⁻⁶</td><td>Basic cryptography</td></tr>
+          <tr><td>20</td><td>4⁻²⁰ ≈ 10⁻¹²</td><td>Standard crypto</td></tr>
+          <tr><td>40</td><td>4⁻⁴⁰ ≈ 10⁻²⁴</td><td>High-security RSA</td></tr>
+        </table>
+        <div class="callout-box">
+          <strong style="color:var(--accent)">Deterministic for small n:</strong> For n &lt; 3,215,031,751, the witnesses {2, 3, 5, 7} are sufficient for a <em>deterministic</em> result — no randomness needed. The tool uses these deterministic witnesses for small inputs.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s8">
+        <h3>8. Modular Exponentiation — Square and Multiply</h3>
+        <p>Computing a^d mod n naïvely would require up to d multiplications — infeasible for large d. The <strong>square-and-multiply</strong> algorithm does it in O(log d) steps:</p>
+        <pre class="pseudocode-lec">MODPOW(base, exp, mod):
+    result = 1
+    base = base mod mod
+    while exp > 0:
+        if exp is odd:
+            result = result * base mod mod  // multiply
+        exp = exp >> 1                       // shift right (halve)
+        base = base * base mod mod           // square
+    return result</pre>
+        <p>For a 2048-bit exponent, this takes about 2048 squarings and ~1024 multiplications — very fast even for huge numbers.</p>
+      </div>
+
+      <div class="lec-section" id="l3s9">
+        <h3>9. Interactive Tool — How to Use</h3>
+        <p>1. Enter any odd number n ≥ 3, or click a preset (including the Carmichael number 561).<br>
+           2. Choose the number of witness rounds (1–10).<br>
+           3. Click <strong>Build Steps</strong> to precompute all test steps.<br>
+           4. Watch the decomposition n−1 = 2ˢ·d animate step by step.<br>
+           5. See the squaring chain for each witness: <span style="color:#3fb950">green = passes</span>, <span style="color:#f85149">red = composite detected</span>.<br>
+           6. The Carmichael demo shows Fermat's test failing before Miller-Rabin succeeds.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-column layout -->
+  <div class="tool-layout">
+
+    <!-- ── Left: Controls ── -->
+    <div class="left-panel">
+
+      <!-- Input -->
+      <div class="panel-section">
+        <div class="panel-section-title">Number to Test</div>
+        <label for="p3-n">Enter n (odd integer ≥ 3)</label>
+        <input type="number" id="p3-n" value="221" min="3" step="2" placeholder="e.g. 221">
+        <label for="p3-rounds" style="margin-top:8px;">Number of witness rounds</label>
+        <input type="number" id="p3-rounds" value="5" min="1" max="10" placeholder="1–10">
+        <div class="preset-grid" style="margin-top:10px;">
+          <div style="font-size:11px;color:var(--text3);width:100%;margin-bottom:2px;">Quick Examples</div>
+          <button class="preset-btn" onclick="loadPreset3(17,5)">17 (prime)</button>
+          <button class="preset-btn" onclick="loadPreset3(221,5)">221 = 13×17</button>
+          <button class="preset-btn" onclick="loadPreset3(97,5)">97 (prime)</button>
+          <button class="preset-btn" onclick="loadPreset3(341,5)">341 (composite)</button>
+          <button class="preset-btn" onclick="loadPreset3(7919,5)">7919 (prime)</button>
+          <button class="preset-btn" onclick="loadPreset3(561,8)" style="border-color:var(--orange);color:var(--orange)">561 — Carmichael ⚠</button>
+          <button class="preset-btn" onclick="loadPreset3(1105,8)" style="border-color:var(--orange);color:var(--orange)">1105 — Carmichael ⚠</button>
+          <button class="preset-btn" onclick="loadPreset3(104729,5)">104729 (prime)</button>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="panel-section">
+        <div class="panel-section-title">Playback Speed</div>
+        <div class="speed-row">
+          <span style="font-size:11px;color:var(--text3)">0.25×</span>
+          <input type="range" id="p3-speed" min="0.25" max="4" step="0.25" value="1" oninput="updateSpeedLabel(3)">
+          <span style="font-size:11px;color:var(--text3)">4×</span>
+          <span class="speed-label" id="p3-speed-label">1.0×</span>
+        </div>
+      </div>
+
+      <!-- Playback -->
+      <div class="panel-section">
+        <div class="panel-section-title">Playback Controls</div>
+        <div class="playback-row">
+          <button class="btn primary" id="p3-build" onclick="p3Build()">Build Steps</button>
+          <button class="btn" id="p3-step" onclick="p3Step()" disabled>Step</button>
+          <button class="btn" id="p3-play" onclick="p3Play()" disabled>Play</button>
+          <button class="btn" id="p3-pause" onclick="p3Pause()" disabled>Pause</button>
+          <button class="btn" id="p3-reset" onclick="p3Reset()" disabled>Reset</button>
+        </div>
+        <div class="status-row" style="margin-top:10px;">
+          <div class="status-item">
+            <span class="s-label">Step</span>
+            <span class="s-value" id="p3-step-counter">0 / 0</span>
+          </div>
+          <div class="status-item">
+            <span class="s-label">Status</span>
+            <span class="s-value" id="p3-status">Idle</span>
+          </div>
+        </div>
+        <div class="stats-row" style="margin-top:8px;">
+          <div class="stat-box">
+            <span class="s-label">Round</span>
+            <span class="s-value" id="p3-round-counter">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="s-label">Mod-Mults</span>
+            <span class="s-value" id="p3-modmults">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="s-label">Confidence</span>
+            <span class="s-value" id="p3-confidence" style="font-size:11px;">—</span>
+          </div>
+        </div>
+        <div class="tip-text" style="margin-top:10px;">
+          Tip: Try <strong>561</strong> (Carmichael) to see Fermat's test fail while Miller-Rabin succeeds. Use <strong>Step</strong> to trace each squaring.
+        </div>
+      </div>
+
+      <!-- Pseudocode -->
+      <div class="panel-section">
+        <div class="panel-section-title">Pseudocode</div>
+        <div class="pseudocode-block" id="p3-pseudocode">
+          <div class="pc-line" id="pc3-0" title="Main Miller-Rabin test: n=number to test, k=rounds"><span class="pc-num">1</span><span class="pc-code">MILLER-RABIN(n, k):</span></div>
+          <div class="pc-line" id="pc3-1" title="Write n-1 as 2^s * d where d is odd"><span class="pc-num">2</span><span class="pc-code">  write n-1 = 2^s · d, d odd</span></div>
+          <div class="pc-line" id="pc3-2" title="Repeat k times with different witnesses"><span class="pc-num">3</span><span class="pc-code">  for round = 1 to k:</span></div>
+          <div class="pc-line" id="pc3-3" title="Pick a random witness a in [2, n-2]"><span class="pc-num">4</span><span class="pc-code">    a = random in [2, n-2]</span></div>
+          <div class="pc-line" id="pc3-4" title="Compute a^d mod n using square-and-multiply"><span class="pc-num">5</span><span class="pc-code">    x = a^d mod n</span></div>
+          <div class="pc-line" id="pc3-5" title="If x is 1 or n-1, this witness passes"><span class="pc-num">6</span><span class="pc-code">    if x == 1 or x == n-1: continue</span></div>
+          <div class="pc-line" id="pc3-6" title="Square x up to s-1 times"><span class="pc-num">7</span><span class="pc-code">    for r = 1 to s-1:</span></div>
+          <div class="pc-line" id="pc3-7" title="Square: x = x^2 mod n"><span class="pc-num">8</span><span class="pc-code">      x = x*x mod n</span></div>
+          <div class="pc-line" id="pc3-8" title="If we see n-1, this witness passes"><span class="pc-num">9</span><span class="pc-code">      if x == n-1: break</span></div>
+          <div class="pc-line" id="pc3-9" title="If we never saw n-1, n is definitely composite"><span class="pc-num">10</span><span class="pc-code">    else: return COMPOSITE</span></div>
+          <div class="pc-line" id="pc3-10" title="All rounds passed — probably prime"><span class="pc-num">11</span><span class="pc-code">  return PROBABLY PRIME</span></div>
+        </div>
+      </div>
+
+      <!-- Step explanation -->
+      <div class="panel-section">
+        <div class="panel-section-title">Step Explanation</div>
+        <div class="step-explanation" id="p3-explanation">
+          <strong>🎓 Step Explanation:</strong> Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to trace the Miller-Rabin test step by step.
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="panel-section">
+        <div class="panel-section-title">Step History</div>
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead><tr><th>#</th><th>Round</th><th>Action</th><th>Value</th></tr></thead>
+            <tbody id="p3-history-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /left-panel -->
+
+    <!-- ── Right: Visualization ── -->
+    <div class="right-panel">
+
+      <!-- Legend -->
+      <div class="legend">
+        <div class="legend-item"><div class="legend-swatch" style="background:#58a6ff"></div>Computing a^d mod n</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#d29922"></div>Squaring step</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#3fb950"></div>Passes (1 or n−1 seen)</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#f85149"></div>Composite detected</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#bc8cff"></div>Decomposition step</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#f0883e"></div>Carmichael / Fermat fail</div>
+      </div>
+
+      <!-- Decomposition display -->
+      <div class="viz-canvas" style="padding:14px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Step 1 — Decompose n−1 = 2ˢ · d</div>
+        <svg id="p3-decomp-svg" viewBox="0 0 760 90" style="display:block;width:100%;max-height:90px;"></svg>
+      </div>
+
+      <!-- Squaring chain -->
+      <div class="viz-canvas" style="padding:14px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Squaring Chain — a^d → a^(2d) → … → a^(n−1) mod n</div>
+        <svg id="p3-chain-svg" viewBox="0 0 760 160" style="display:block;width:100%;min-height:120px;"></svg>
+      </div>
+
+      <!-- Witness rounds table -->
+      <div class="viz-canvas" style="padding:14px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Witness Rounds — Cumulative Results</div>
+        <div id="p3-rounds-display" style="font-size:12px;color:var(--text2);">
+          Run Build Steps to see witness results here.
+        </div>
+      </div>
+
+      <!-- Fermat vs Miller-Rabin comparison -->
+      <div class="compare-pane">
+        <h4>Fermat's Test vs Miller-Rabin — Side-by-Side</h4>
+        <div id="p3-fermat-display" style="font-size:12px;color:var(--text2);line-height:1.9;">
+          Enter a number and click Build Steps to compare Fermat and Miller-Rabin on the same input.
+        </div>
+      </div>
+
+      <!-- Final verdict -->
+      <div id="p3-verdict" style="display:none;padding:16px 20px;border-radius:8px;text-align:center;font-size:16px;font-weight:600;border:1px solid;">
+      </div>
+
+    </div><!-- /right-panel -->
+  </div><!-- /tool-layout -->
+
+</section>
+
+
+<script>
+/* ════════════════════════════════════════
+   TAB SWITCHING
+════════════════════════════════════════ */
+function switchTab(n) {
+  document.querySelectorAll('.part-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('part' + n).classList.add('active');
+  document.querySelectorAll('.tab-btn')[n - 1].classList.add('active');
+  if (typeof p1State !== 'undefined' && p1State.timer) { clearTimeout(p1State.timer); p1State.timer = null; }
+  if (typeof p2State !== 'undefined' && p2State.timer) { clearTimeout(p2State.timer); p2State.timer = null; }
+  if (typeof p3State !== 'undefined' && p3State.timer) { clearTimeout(p3State.timer); p3State.timer = null; }
+}
+
+function toggleLecture(id) {
+  const body = document.getElementById(id);
+  const btn = document.getElementById(id + '-btn');
+  const collapsed = body.classList.toggle('collapsed');
+  btn.textContent = collapsed ? 'Expand' : 'Collapse';
+}
+
+/* ── Scroll-safe history auto-scroll ──
+   Only auto-scroll the history table when the user is NOT
+   actively scrolling the page. This prevents the browser
+   fighting the user's scroll gesture with programmatic scrolls. ── */
+let _userScrolling = false;
+let _scrollTimeout = null;
+let _lastAutoHistoryScrollAt = 0;
+
+function markUserScrolling() {
+  _userScrolling = true;
+  clearTimeout(_scrollTimeout);
+  _scrollTimeout = setTimeout(() => { _userScrolling = false; }, 400);
+}
+
+window.addEventListener('scroll', markUserScrolling, { passive: true });
+document.addEventListener('scroll', markUserScrolling, { passive: true, capture: true });
+window.addEventListener('wheel', markUserScrolling, { passive: true });
+window.addEventListener('touchmove', markUserScrolling, { passive: true });
+
+function safeScrollIntoView(el) {
+  const isNarrowViewport = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  if (_userScrolling || isNarrowViewport || !el) return;
+
+  const now = performance.now();
+  if (now - _lastAutoHistoryScrollAt < 140) return;
+
+  const wrap = el.closest('.history-table-wrap');
+  if (!wrap) return;
+
+  const rowTop = el.offsetTop;
+  const rowBottom = rowTop + el.offsetHeight;
+  const viewTop = wrap.scrollTop;
+  const viewBottom = viewTop + wrap.clientHeight;
+
+  if (rowTop < viewTop) {
+    wrap.scrollTop = rowTop;
+  } else if (rowBottom > viewBottom) {
+    wrap.scrollTop = rowBottom - wrap.clientHeight;
+  } else {
+    return;
+  }
+
+  _lastAutoHistoryScrollAt = now;
+}
+
+/* ════════════════════════════════════════
+   PART 1 — ODD-EVEN MERGE SORT NETWORK
+════════════════════════════════════════ */
+
+const p1State = {
+  arr: [],
+  steps: [],
+  currentStep: -1,
+  timer: null,
+  status: 'Idle',
+  comparisons: 0,
+  swaps: 0,
+  history: [],
+  networkComparators: [], // [{i, j, phase}]
+  zeroOneMode: false,
+  zeroOneLast: null
+};
+
+/* ── Helpers ── */
+function randomArr1(n) {
+  const a = Array.from({length: n}, (_, i) => i + 1);
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function loadPreset1(arr) {
+  document.getElementById('p1-input').value = arr.join(', ');
+  p1Reset();
+}
+
+function updateSpeedLabel(part) {
+  const v = document.getElementById('p' + part + '-speed').value;
+  document.getElementById('p' + part + '-speed-label').textContent = parseFloat(v).toFixed(2) + '×';
+}
+
+function getSpeed1() {
+  return parseFloat(document.getElementById('p1-speed').value);
+}
+
+function parseInput1() {
+  const raw = document.getElementById('p1-input').value;
+  const arr = raw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+  if (arr.length < 2) return null;
+  // Pad to next power of 2
+  let n = 1;
+  while (n < arr.length) n <<= 1;
+  while (arr.length < n) arr.push(0);
+  return arr;
+}
+
+function comparatorPhaseText(c) {
+  if (c.phaseType === 'merge-final') {
+    return `Final compare-swap layer in MERGE(${c.lo}, ${c.hi}, step=${c.step})`;
+  }
+  if (c.phaseType === 'base-compare') {
+    const branchLabel = c.branch === 'odd' ? 'odd sub-merge' : c.branch === 'even' ? 'even sub-merge' : 'base merge';
+    return `Base comparator from ${branchLabel} in MERGE(${c.lo}, ${c.hi}, step=${c.step})`;
+  }
+  return `Comparator in MERGE(${c.lo}, ${c.hi}, step=${c.step})`;
+}
+
+function verifyNetwork01(input, comparators) {
+  const a = [...input];
+  comparators.forEach(({ i, j }) => {
+    if (a[i] > a[j]) [a[i], a[j]] = [a[j], a[i]];
+  });
+  for (let i = 0; i < a.length - 1; i++) {
+    if (a[i] > a[i + 1]) return { ok: false, output: a };
+  }
+  return { ok: true, output: a };
+}
+
+function toggleZeroOneMode1() {
+  const enabled = document.getElementById('p1-01-mode').checked;
+  p1State.zeroOneMode = enabled;
+  document.getElementById('p1-01-size').disabled = !enabled;
+  document.getElementById('p1-01-run').disabled = !enabled;
+  document.getElementById('p1-01-result').textContent = enabled
+    ? 'Ready: run exhaustive binary verification for the selected n.'
+    : 'Enable 0-1 mode to exhaustively verify all binary inputs.';
+}
+
+function p1RunZeroOne() {
+  const n = parseInt(document.getElementById('p1-01-size').value, 10);
+  const comparators = buildOENetwork(n);
+  const totalCases = 1 << n;
+  let passes = 0;
+  let fails = 0;
+  let firstFail = null;
+
+  for (let mask = 0; mask < totalCases; mask++) {
+    const input = [];
+    for (let bit = n - 1; bit >= 0; bit--) input.push((mask >> bit) & 1);
+    const check = verifyNetwork01(input, comparators);
+    if (check.ok) {
+      passes++;
+    } else {
+      fails++;
+      if (!firstFail) firstFail = { input, output: check.output };
+    }
+  }
+
+  p1State.zeroOneLast = { n, totalCases, passes, fails, firstFail };
+
+  const depth = groupByDepth(comparators).length;
+  document.getElementById('p1-01-result').innerHTML = fails === 0
+    ? `<strong style="color:var(--green)">Verified:</strong> all ${totalCases} binary inputs passed for n=${n}. Network uses ${comparators.length} comparators and depth ${depth}.`
+    : `<strong style="color:var(--red)">Failed:</strong> ${fails}/${totalCases} binary inputs failed for n=${n}. First failure: [${firstFail.input.join(', ')}] -> [${firstFail.output.join(', ')}].`;
+
+  document.getElementById('p1-explanation').innerHTML = fails === 0
+    ? `<strong>0-1 Principle verified:</strong> The network sorted all ${totalCases} binary inputs for n=${n}. By the 0-1 Principle, this supports correctness for general comparable values.`
+    : `<strong>0-1 Principle test found a counterexample:</strong> At least one binary input did not sort correctly. Inspect the failure details above.`;
+
+  setStatus1(fails === 0 ? '0-1 Verified' : '0-1 Failed');
+  drawNetwork1(Array.from({ length: n }, (_, i) => i % 2), null);
+}
+
+/* ── Odd-Even Sort Network Generator ── */
+// Returns array of {i, j, phase, depth} comparators
+function buildOENetwork(n) {
+  const comparators = [];
+  const depths = new Array(n).fill(0);
+
+  function oeSort(lo, hi) {
+    if (hi - lo <= 1) return;
+    const mid = Math.floor((lo + hi) / 2);
+    oeSort(lo, mid);
+    oeSort(mid, hi);
+    oeMerge(lo, hi, 1, 'root');
+  }
+
+  function oeMerge(lo, hi, step, branch) {
+    const half = step * 2;
+    if (half < hi - lo) {
+      oeMerge(lo, hi, half, 'odd');
+      oeMerge(lo + step, hi, half, 'even');
+      for (let i = lo + step; i + step < hi; i += half) {
+        const d = Math.max(depths[i], depths[i + step]) + 1;
+        depths[i] = depths[i + step] = d;
+        comparators.push({
+          i,
+          j: i + step,
+          depth: d,
+          phaseType: 'merge-final',
+          lo,
+          hi,
+          step,
+          branch
+        });
+      }
+    } else {
+      if (lo + step < hi) {
+        const d = Math.max(depths[lo], depths[lo + step]) + 1;
+        depths[lo] = depths[lo + step] = d;
+        comparators.push({
+          i: lo,
+          j: lo + step,
+          depth: d,
+          phaseType: 'base-compare',
+          lo,
+          hi,
+          step,
+          branch
+        });
+      }
+    }
+  }
+
+  oeSort(0, n);
+  return comparators;
+}
+
+/* Group comparators by depth level (parallel layers) */
+function groupByDepth(comparators) {
+  const layers = {};
+  comparators.forEach(c => {
+    if (!layers[c.depth]) layers[c.depth] = [];
+    layers[c.depth].push(c);
+  });
+  return Object.values(layers);
+}
+
+/* ── Bitonic Sort Network Generator ── */
+function buildBitonicNetwork(n) {
+  const comparators = [];
+  function bitonicSort(lo, cnt, dir) {
+    if (cnt > 1) {
+      const k = cnt >> 1;
+      bitonicSort(lo, k, true);
+      bitonicSort(lo + k, k, false);
+      bitonicMerge(lo, cnt, dir);
+    }
+  }
+  function bitonicMerge(lo, cnt, dir) {
+    if (cnt > 1) {
+      const k = cnt >> 1;
+      for (let i = lo; i < lo + k; i++) comparators.push({ i, j: i + k });
+      bitonicMerge(lo, k, dir);
+      bitonicMerge(lo + k, k, dir);
+    }
+  }
+  bitonicSort(0, n, true);
+  return comparators;
+}
+
+/* ── Step Generation ── */
+function generateSteps1(arr) {
+  const steps = [];
+  const a = [...arr];
+  const n = a.length;
+  const comparators = buildOENetwork(n);
+  const layers = groupByDepth(comparators);
+
+  steps.push({
+    type: 'init',
+    arr: [...a],
+    pcLine: 0,
+    phase: 'Initialize',
+    explanation: `<strong>Initialize:</strong> Array has ${n} elements (padded to power of 2). Building the Odd-Even Merge sorting network. Total comparators needed: <strong>${comparators.length}</strong>.`,
+    comparisons: 0,
+    swaps: 0,
+    highlight: []
+  });
+
+  let totalComparisons = 0, totalSwaps = 0;
+  let layerIdx = 0;
+
+  for (const layer of layers) {
+    layerIdx++;
+    const phaseSummary = [...new Set(layer.map(comparatorPhaseText))].slice(0, 2).join(' | ');
+    // Announce layer
+    steps.push({
+      type: 'layer_start',
+      arr: [...a],
+      pcLine: 8,
+      phase: `Depth ${layerIdx}`,
+      explanation: `<strong>Depth level ${layerIdx}:</strong> Processing ${layer.length} comparator(s) in parallel at this depth level. Recursive context: ${phaseSummary}.`,
+      comparisons: totalComparisons,
+      swaps: totalSwaps,
+      highlight: layer.map(c => c.i).concat(layer.map(c => c.j)),
+      activeComps: layer
+    });
+
+    for (const comp of layer) {
+      totalComparisons++;
+      const { i, j } = comp;
+      const swapped = a[i] > a[j];
+      const aiBefore = a[i], ajBefore = a[j];
+      if (swapped) {
+        [a[i], a[j]] = [a[j], a[i]];
+        totalSwaps++;
+      }
+      steps.push({
+        type: swapped ? 'swap' : 'compare',
+        arr: [...a],
+        pcLine: swapped ? 12 : 12,
+        phase: `Depth ${layerIdx} - ${comp.phaseType === 'merge-final' ? 'merge layer' : (comp.branch || 'base')}`,
+        explanation: swapped
+          ? `<strong>${comparatorPhaseText(comp)}:</strong> SWAP at positions [${i}] and [${j}] because A[${i}]=${aiBefore} &gt; A[${j}]=${ajBefore}.`
+          : `<strong>${comparatorPhaseText(comp)}:</strong> Compare [${i}] and [${j}] with A[${i}]=${aiBefore} ≤ A[${j}]=${ajBefore}; no swap needed.`,
+        comparisons: totalComparisons,
+        swaps: totalSwaps,
+        highlight: [i, j],
+        activeComps: [comp],
+        swapped
+      });
+    }
+  }
+
+  steps.push({
+    type: 'done',
+    arr: [...a],
+    pcLine: -1,
+    phase: 'Done',
+    explanation: `<strong>Sorting Complete!</strong> Array is now fully sorted: [${a.join(', ')}]. Used <strong>${totalComparisons}</strong> comparisons and <strong>${totalSwaps}</strong> swaps across <strong>${layers.length}</strong> depth levels.`,
+    comparisons: totalComparisons,
+    swaps: totalSwaps,
+    highlight: a.map((_, i) => i)
+  });
+
+  return steps;
+}
+
+/* ── SVG Drawing ── */
+function drawNetwork1(arr, step) {
+  const svg = document.getElementById('main-svg');
+  const n = arr.length;
+  if (n === 0) { svg.innerHTML = ''; return; }
+
+  const comparators = buildOENetwork(n);
+  const layers = groupByDepth(comparators);
+  const maxDepth = layers.length;
+
+  const PAD_L = 60, PAD_R = 40, PAD_T = 40, PAD_B = 30;
+  const WIRE_H = Math.max(28, Math.min(48, 320 / n));
+  const DEPTH_W = Math.max(48, Math.min(72, 640 / (maxDepth + 1)));
+  const totalW = PAD_L + maxDepth * DEPTH_W + PAD_R + 40;
+  const totalH = PAD_T + n * WIRE_H + PAD_B;
+
+  svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
+  svg.style.minHeight = totalH + 'px';
+
+  const highlight = step && step.highlight ? new Set(step.highlight) : new Set();
+  const activeComps = step && step.activeComps ? step.activeComps : [];
+  const activeCompSet = new Set(activeComps.map(c => `${c.i},${c.j}`));
+
+  // Determine wire colors
+  const wireColor = arr.map((_, idx) => {
+    if (step && step.type === 'done') return 'var(--c-sorted)';
+    if (highlight.has(idx)) {
+      if (step && step.type === 'swap') return 'var(--c-swap)';
+      return 'var(--c-compare)';
+    }
+    return idx % 2 === 0 ? 'var(--c-even)' : 'var(--c-odd)';
+  });
+
+  let html = '';
+
+  // Draw wires
+  const wireX2 = PAD_L + maxDepth * DEPTH_W + 20;
+  for (let i = 0; i < n; i++) {
+    const y = PAD_T + i * WIRE_H + WIRE_H / 2;
+    html += `<line x1="${PAD_L - 20}" y1="${y}" x2="${wireX2}" y2="${y}"
+      stroke="${wireColor[i]}" stroke-width="${highlight.has(i) ? 2 : 1}" opacity="0.6"/>`;
+    // Wire labels (values)
+    const val = step ? step.arr[i] : arr[i];
+    html += `<text x="${wireX2 + 8}" y="${y}" fill="${wireColor[i]}" font-size="11" font-family="Consolas,monospace" dominant-baseline="central">${val}</text>`;
+    // Index labels on left
+    html += `<text x="${PAD_L - 24}" y="${y}" fill="var(--text3)" font-size="10" font-family="Consolas,monospace" dominant-baseline="central" text-anchor="middle">${i}</text>`;
+  }
+
+  // Draw comparators
+  layers.forEach((layer, layerIdx) => {
+    const x = PAD_L + (layerIdx + 0.5) * DEPTH_W;
+    layer.forEach(comp => {
+      const y1 = PAD_T + comp.i * WIRE_H + WIRE_H / 2;
+      const y2 = PAD_T + comp.j * WIRE_H + WIRE_H / 2;
+      const isActive = activeCompSet.has(`${comp.i},${comp.j}`);
+      const color = isActive
+        ? (step && step.type === 'swap' ? 'var(--c-swap)' : 'var(--c-compare)')
+        : step && step.type === 'done' ? 'var(--c-sorted)'
+        : 'var(--c-normal)';
+      const sw = isActive ? 3 : 1.5;
+
+      html += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}"
+        stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>`;
+      html += `<circle cx="${x}" cy="${y1}" r="${isActive ? 5 : 3.5}" fill="${color}"/>`;
+      html += `<circle cx="${x}" cy="${y2}" r="${isActive ? 5 : 3.5}" fill="${color}"/>`;
+    });
+  });
+
+  // Depth labels at top
+  for (let d = 0; d < maxDepth; d++) {
+    const x = PAD_L + (d + 0.5) * DEPTH_W;
+    html += `<text x="${x}" y="16" fill="var(--text3)" font-size="9" text-anchor="middle" font-family="Segoe UI,sans-serif">d${d + 1}</text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+function drawBitonic(arr) {
+  const svg = document.getElementById('bitonic-svg');
+  const n = arr.length;
+  if (n === 0) { svg.innerHTML = ''; return; }
+
+  const comparators = buildBitonicNetwork(n);
+  const depths = {};
+  comparators.forEach((c, idx) => { depths[idx] = idx; });
+
+  // Simple grouping: assign layers greedily
+  const wireDepth = new Array(n).fill(0);
+  const layered = comparators.map(c => {
+    const d = Math.max(wireDepth[c.i], wireDepth[c.j]) + 1;
+    wireDepth[c.i] = wireDepth[c.j] = d;
+    return { ...c, depth: d };
+  });
+  const maxD = Math.max(...layered.map(c => c.depth));
+
+  const PAD_L = 60, PAD_R = 40, PAD_T = 30, PAD_B = 20;
+  const WIRE_H = Math.max(24, Math.min(38, 260 / n));
+  const DEPTH_W = Math.max(38, Math.min(56, 640 / (maxD + 1)));
+  const W = PAD_L + maxD * DEPTH_W + PAD_R + 40;
+  const H = PAD_T + n * WIRE_H + PAD_B;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.minHeight = H + 'px';
+
+  let html = '';
+  const wireX2 = PAD_L + maxD * DEPTH_W + 20;
+  for (let i = 0; i < n; i++) {
+    const y = PAD_T + i * WIRE_H + WIRE_H / 2;
+    html += `<line x1="${PAD_L - 20}" y1="${y}" x2="${wireX2}" y2="${y}"
+      stroke="var(--orange)" stroke-width="1" opacity="0.45"/>`;
+    html += `<text x="${PAD_L - 24}" y="${y}" fill="var(--text3)" font-size="9" font-family="Consolas,monospace" dominant-baseline="central" text-anchor="middle">${i}</text>`;
+  }
+  layered.forEach(comp => {
+    const x = PAD_L + (comp.depth - 0.5) * DEPTH_W;
+    const y1 = PAD_T + comp.i * WIRE_H + WIRE_H / 2;
+    const y2 = PAD_T + comp.j * WIRE_H + WIRE_H / 2;
+    html += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>`;
+    html += `<circle cx="${x}" cy="${y1}" r="3" fill="var(--orange)" opacity="0.7"/>`;
+    html += `<circle cx="${x}" cy="${y2}" r="3" fill="var(--orange)" opacity="0.7"/>`;
+  });
+  svg.innerHTML = html;
+}
+
+/* ── UI Updates ── */
+function setStatus1(s) {
+  p1State.status = s;
+  document.getElementById('p1-status').textContent = s;
+}
+
+function setButtons1(built) {
+  document.getElementById('p1-step').disabled = !built;
+  document.getElementById('p1-play').disabled = !built;
+  document.getElementById('p1-pause').disabled = !built;
+  document.getElementById('p1-reset').disabled = !built;
+}
+
+function highlightPCLine(part, line) {
+  document.querySelectorAll(`#p${part}-pseudocode .pc-line`).forEach(el => el.classList.remove('active'));
+  if (line >= 0) {
+    const el = document.getElementById(`pc${part}-${line}`);
+    if (el) el.classList.add('active');
+  }
+}
+
+function updateStep1(idx) {
+  if (idx < 0 || idx >= p1State.steps.length) return;
+  p1State.currentStep = idx;
+  const step = p1State.steps[idx];
+
+  drawNetwork1(p1State.arr, step);
+  highlightPCLine(1, step.pcLine);
+  document.getElementById('p1-explanation').innerHTML = step.explanation;
+  document.getElementById('p1-step-counter').textContent = `${idx + 1} / ${p1State.steps.length}`;
+  document.getElementById('p1-comparisons').textContent = step.comparisons;
+  document.getElementById('p1-swaps').textContent = step.swaps;
+
+  addHistory1(idx, step);
+
+  if (idx === p1State.steps.length - 1) {
+    setStatus1('Done');
+    clearTimeout(p1State.timer);
+    p1State.timer = null;
+  }
+}
+
+function addHistory1(idx, step) {
+  const tbody = document.getElementById('p1-history-body');
+  tbody.querySelectorAll('tr').forEach(r => r.classList.remove('current'));
+
+  let existing = tbody.querySelector(`tr[data-step="${idx}"]`);
+  if (!existing) {
+    const tr = document.createElement('tr');
+    tr.dataset.step = idx;
+    tr.innerHTML = `<td>${idx + 1}</td><td>${step.phase}</td><td>${step.type}</td><td>[${step.arr.slice(0, 8).join(',')}]</td>`;
+    tr.title = step.explanation.replace(/<[^>]+>/g, '');
+    tr.onclick = () => { updateStep1(idx); setStatus1('Paused'); };
+    if (tbody.children.length >= 30) tbody.removeChild(tbody.firstChild);
+    tbody.appendChild(tr);
+    existing = tr;
+  }
+  existing.classList.add('current');
+  safeScrollIntoView(existing);
+}
+
+/* ── Build / Play / Step / Pause / Reset ── */
+function p1Build() {
+  const raw = document.getElementById('p1-input').value;
+  const rawCount = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n)).length;
+  if (rawCount > 64) {
+    alert('Please use at most 64 numbers for Part 1 visualization.');
+    return;
+  }
+
+  const arr = parseInput1();
+  if (!arr) { alert('Please enter a valid comma-separated array of numbers (minimum 2 elements).'); return; }
+  if (arr.length > 64) {
+    alert('After power-of-2 padding, this input exceeds 64 elements. Please reduce input size.');
+    return;
+  }
+  p1State.arr = arr;
+  p1State.steps = generateSteps1(arr);
+  p1State.currentStep = -1;
+  p1State.history = [];
+  document.getElementById('p1-history-body').innerHTML = '';
+  if (p1State.timer) { clearTimeout(p1State.timer); p1State.timer = null; }
+
+  const oeCount = buildOENetwork(arr.length).length;
+  const biCount = buildBitonicNetwork(arr.length).length;
+  document.getElementById('oe-count').textContent = oeCount;
+  document.getElementById('bi-count').textContent = biCount;
+  document.getElementById('compare-note').textContent =
+    `For n=${arr.length}: Odd-Even uses ${oeCount} comparators vs Bitonic's ${biCount} — Odd-Even is ${biCount - oeCount} comparators fewer (${((biCount - oeCount) / biCount * 100).toFixed(1)}% savings).`;
+
+  drawBitonic(arr);
+  drawNetwork1(arr, null);
+  setStatus1('Ready');
+  setButtons1(true);
+  document.getElementById('p1-step-counter').textContent = `0 / ${p1State.steps.length}`;
+  document.getElementById('p1-comparisons').textContent = 0;
+  document.getElementById('p1-swaps').textContent = 0;
+  document.getElementById('p1-explanation').innerHTML = `<strong>Ready!</strong> Built <strong>${p1State.steps.length}</strong> steps for array of ${arr.length} elements. Click <strong>Step</strong> or <strong>Play</strong> to begin.`;
+}
+
+function p1Step() {
+  if (p1State.timer) { clearTimeout(p1State.timer); p1State.timer = null; }
+  const next = p1State.currentStep + 1;
+  if (next < p1State.steps.length) {
+    updateStep1(next);
+    setStatus1('Paused');
+  }
+}
+
+function p1Play() {
+  if (p1State.timer) return;
+  if (p1State.currentStep >= p1State.steps.length - 1) p1State.currentStep = -1;
+  setStatus1('Playing');
+  function tick() {
+    const next = p1State.currentStep + 1;
+    if (next >= p1State.steps.length) {
+      p1State.timer = null;
+      setStatus1('Done');
+      return;
+    }
+    updateStep1(next);
+    if (p1State.status === 'Playing') {
+      p1State.timer = setTimeout(tick, Math.max(120, 800 / getSpeed1()));
+    }
+  }
+  p1State.timer = setTimeout(tick, Math.max(120, 800 / getSpeed1()));
+}
+
+function p1Pause() {
+  if (p1State.timer) { clearTimeout(p1State.timer); p1State.timer = null; }
+  setStatus1('Paused');
+}
+
+function p1Reset() {
+  if (p1State.timer) { clearTimeout(p1State.timer); p1State.timer = null; }
+  p1State.steps = [];
+  p1State.currentStep = -1;
+  p1State.history = [];
+  document.getElementById('p1-history-body').innerHTML = '';
+  document.getElementById('p1-step-counter').textContent = '0 / 0';
+  document.getElementById('p1-comparisons').textContent = 0;
+  document.getElementById('p1-swaps').textContent = 0;
+  document.getElementById('p1-explanation').innerHTML = '<strong>🎓 Step Explanation:</strong> Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to begin.';
+  document.getElementById('main-svg').innerHTML = '';
+  document.getElementById('bitonic-svg').innerHTML = '';
+  document.getElementById('oe-count').textContent = '—';
+  document.getElementById('bi-count').textContent = '—';
+  document.getElementById('compare-note').textContent = 'Enter an array and click Build Steps to see the comparator counts.';
+  document.getElementById('p1-01-result').textContent = p1State.zeroOneMode
+    ? 'Ready: run exhaustive binary verification for the selected n.'
+    : 'Enable 0-1 mode to exhaustively verify all binary inputs.';
+  highlightPCLine(1, -1);
+  setStatus1('Idle');
+  setButtons1(false);
+}
+
+/* ── Init ── */
+updateSpeedLabel(1);
+
+/* ════════════════════════════════════════
+   PART 2 — FFT POLYNOMIAL MULTIPLICATION
+════════════════════════════════════════ */
+
+const p2State = {
+  polyA: [], polyB: [],
+  fftN: 0,
+  steps: [],
+  currentStep: -1,
+  timer: null,
+  status: 'Idle',
+  showSplitTree: false,
+  splitTreeLevels: null
+};
+
+/* ── Complex number helpers ── */
+function cAdd(a, b) { return { re: a.re + b.re, im: a.im + b.im }; }
+function cSub(a, b) { return { re: a.re - b.re, im: a.im - b.im }; }
+function cMul(a, b) { return { re: a.re*b.re - a.im*b.im, im: a.re*b.im + a.im*b.re }; }
+function cStr(c, dp=2) {
+  const re = Math.round(c.re * 10**dp) / 10**dp;
+  const im = Math.round(c.im * 10**dp) / 10**dp;
+  if (Math.abs(im) < 0.001) return `${re}`;
+  if (Math.abs(re) < 0.001) return `${im}i`;
+  return `${re}${im >= 0 ? '+' : ''}${im}i`;
+}
+function cMag(c) { return Math.sqrt(c.re*c.re + c.im*c.im); }
+
+/* ── FFT (Cooley-Tukey iterative) ── */
+function fft(a, invert) {
+  const n = a.length;
+  const A = a.map(v => typeof v === 'number' ? {re:v, im:0} : {...v});
+  // Bit-reversal permutation
+  for (let i=1,j=0; i<n; i++) {
+    let bit = n >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) [A[i], A[j]] = [A[j], A[i]];
+  }
+  for (let len=2; len<=n; len<<=1) {
+    const ang = 2*Math.PI/len * (invert ? -1 : 1);
+    const wlen = {re: Math.cos(ang), im: Math.sin(ang)};
+    for (let i=0; i<n; i+=len) {
+      let w = {re:1, im:0};
+      for (let j=0; j<len/2; j++) {
+        const u = A[i+j];
+        const v = cMul(A[i+j+len/2], w);
+        A[i+j]         = cAdd(u, v);
+        A[i+j+len/2]   = cSub(u, v);
+        w = cMul(w, wlen);
+      }
+    }
+  }
+  if (invert) A.forEach(c => { c.re /= n; c.im /= n; });
+  return A;
+}
+
+/* ── Next power of 2 ── */
+function nextPow2(n) { let p=1; while(p<n) p<<=1; return p; }
+
+/* ── Parse polynomial input ── */
+function parsePoly(id) {
+  const raw = document.getElementById(id).value;
+  return raw.split(',').map(s => parseFloat(s.trim())).filter(v => !isNaN(v));
+}
+
+/* ── Polynomial display string ── */
+function polyToStr(coeffs, varName='x') {
+  if (!coeffs.length) return '0';
+  const terms = [];
+  coeffs.forEach((c, i) => {
+    if (Math.abs(c) < 0.0001) return;
+    const cs = (Math.abs(c) === 1 && i > 0) ? '' : Math.round(c*1000)/1000;
+    const sign = c < 0 ? '−' : (terms.length ? '+' : '');
+    const xp = i===0 ? '' : i===1 ? varName : `${varName}²` /* simplified */;
+    terms.push(`${sign}${Math.abs(cs)||''}${xp}`);
+  });
+  // Full superscript for higher degrees
+  const full = coeffs.map((c, i) => {
+    if (Math.abs(c) < 0.0001) return null;
+    const sign = c < 0 ? '−' : '+';
+    const ac = Math.abs(Math.round(c*1000)/1000);
+    const coefStr = (ac === 1 && i > 0) ? '' : ac;
+    const xStr = i===0 ? '' : i===1 ? 'x' : `x^${i}`;
+    return `${sign}${coefStr}${xStr}`;
+  }).filter(Boolean).join(' ').replace(/^\+/, '');
+  return full || '0';
+}
+
+function updatePolyDisplay2() {
+  const a = parsePoly('p2-polyA');
+  const b = parsePoly('p2-polyB');
+  const el = document.getElementById('p2-poly-display');
+  if (!a.length || !b.length) { el.textContent = ''; return; }
+  el.innerHTML = `A(x) = ${polyToStr(a)}<br>B(x) = ${polyToStr(b)}`;
+}
+
+/* ── Generate all FFT steps ── */
+function generateSteps2(A, B) {
+  const steps = [];
+  const result = { butterflies: 0, mults: 0 };
+
+  const degC = A.length + B.length - 1;
+  const n = nextPow2(degC);
+
+  // Pad
+  const aPad = [...A]; while(aPad.length < n) aPad.push(0);
+  const bPad = [...B]; while(bPad.length < n) bPad.push(0);
+
+  steps.push({
+    phase: 'Init', pcLine: 1,
+    type: 'init',
+    n, aPad: [...aPad], bPad: [...bPad],
+    butterflies: 0, mults: 0,
+    circleN: n, circleActive: [],
+    explanation: `<strong>Initialize:</strong> A has ${A.length} coefficients, B has ${B.length}. Product has degree ${degC-1}, needing ${degC} coefficients. Pad both to n = <strong>${n}</strong> (next power of 2 ≥ ${degC}) to enable divide-and-conquer.`,
+    highlight: [], butterflyHighlight: []
+  });
+
+  // ── PHASE 1: FFT(A) ──
+  steps.push({
+    phase: 'FFT(A)', pcLine: 2, type: 'phase_start',
+    butterflies: 0, mults: 0,
+    circleN: n, circleActive: Array.from({length:n},(_,i)=>i),
+    explanation: `<strong>Phase 1a — Evaluate A:</strong> Computing FFT of A = [${aPad.join(', ')}] at the ${n} roots of unity ω⁰, ω¹, …, ω^${n-1} where ω = e^(2πi/${n}). These are ${n} evenly-spaced points on the unit circle.`,
+    highlight: [], butterflyHighlight: []
+  });
+
+  // Generate butterfly steps for FFT(A)
+  const faSteps = generateButterflySteps(aPad, false, 'FFT(A)', result);
+  steps.push(...faSteps);
+  const FA = fft(aPad, false);
+
+  // ── PHASE 1b: FFT(B) ──
+  steps.push({
+    phase: 'FFT(B)', pcLine: 3, type: 'phase_start',
+    butterflies: result.butterflies, mults: result.mults,
+    circleN: n, circleActive: Array.from({length:n},(_,i)=>i),
+    explanation: `<strong>Phase 1b — Evaluate B:</strong> Now compute FFT of B = [${bPad.join(', ')}] at the same ${n} roots. We reuse the same butterfly network structure.`,
+    highlight: [], butterflyHighlight: []
+  });
+
+  const fbSteps = generateButterflySteps(bPad, false, 'FFT(B)', result);
+  steps.push(...fbSteps);
+  const FB = fft(bPad, false);
+
+  // ── PHASE 2: Pointwise multiply ──
+  steps.push({
+    phase: 'Pointwise ×', pcLine: 4, type: 'pointwise_start',
+    butterflies: result.butterflies, mults: result.mults,
+    circleN: n, circleActive: [],
+    explanation: `<strong>Phase 2 — Pointwise Multiply:</strong> Now multiply FA[k] × FB[k] for each k = 0..${n-1}. This is just n = ${n} scalar complex multiplications — O(n) total.`,
+    highlight: [], butterflyHighlight: []
+  });
+
+  const FC = FA.map((fa, k) => {
+    result.mults++;
+    return cMul(fa, FB[k]);
+  });
+
+  for (let k = 0; k < n; k++) {
+    steps.push({
+      phase: 'Pointwise ×', pcLine: 4, type: 'pointwise',
+      k, faVal: FA[k], fbVal: FB[k], fcVal: FC[k],
+      butterflies: result.butterflies, mults: result.mults,
+      circleN: n, circleActive: [k],
+      explanation: `<strong>k=${k}:</strong> FA[${k}] = ${cStr(FA[k])} × FB[${k}] = ${cStr(FB[k])} = <strong>${cStr(FC[k])}</strong>`,
+      highlight: [k], butterflyHighlight: []
+    });
+  }
+
+  // ── PHASE 3: IFFT ──
+  steps.push({
+    phase: 'IFFT', pcLine: 5, type: 'phase_start',
+    butterflies: result.butterflies, mults: result.mults,
+    circleN: n, circleActive: Array.from({length:n},(_,i)=>i),
+    explanation: `<strong>Phase 3 — Interpolate (IFFT):</strong> Apply inverse FFT to FC. The IFFT is identical to FFT but uses ω⁻¹ = e^(−2πi/${n}) and divides by n=${n} at the end.`,
+    highlight: [], butterflyHighlight: []
+  });
+
+  const ifftSteps = generateButterflySteps([...FC], true, 'IFFT', result);
+  steps.push(...ifftSteps);
+
+  const C = fft(FC, true);
+  const coeffs = C.map(c => Math.round(c.re * 1000) / 1000).slice(0, A.length + B.length - 1);
+
+  // Final step
+  steps.push({
+    phase: 'Done', pcLine: 6, type: 'done',
+    coeffs, n,
+    butterflies: result.butterflies, mults: result.mults,
+    circleN: n, circleActive: [],
+    explanation: `<strong>✓ Complete!</strong> C(x) = ${polyToStr(coeffs)}. Coefficients: [${coeffs.join(', ')}]. Used <strong>${result.butterflies}</strong> butterfly operations vs naïve's <strong>${A.length * B.length}</strong> multiplications.`,
+    highlight: [], butterflyHighlight: []
+  });
+
+  return steps;
+}
+
+function generateButterflySteps(a, invert, label, counter) {
+  const steps = [];
+  const n = a.length;
+  const logN = Math.log2(n);
+
+  for (let level = 1; level <= logN; level++) {
+    const len = 1 << level;
+    const half = len >> 1;
+    const ang = 2 * Math.PI / len * (invert ? -1 : 1);
+
+    const levelButterflies = (n / len) * half;
+    counter.butterflies += levelButterflies;
+
+    const bfHighlight = [];
+    for (let i = 0; i < n; i += len) {
+      for (let j = 0; j < half; j++) {
+        bfHighlight.push({ top: i+j, bot: i+j+half, level, group: i });
+      }
+    }
+
+    steps.push({
+      phase: label, pcLine: 12, type: 'butterfly_level',
+      level, logN, n,
+      ang: ang * 180 / Math.PI,
+      levelButterflies,
+      butterflies: counter.butterflies,
+      mults: counter.mults,
+      circleN: n, circleActive: [],
+      explanation: `<strong>${label} — Level ${level}/${logN}:</strong> Block size = ${len}. Half = ${half}. Twiddle factor base ω = e^(${invert?'−':''}2πi/${len}). Performing <strong>${levelButterflies}</strong> butterfly operations — each combines one value from the even sub-result and one from the odd sub-result.`,
+      highlight: [], butterflyHighlight: bfHighlight
+    });
+  }
+  return steps;
+}
+
+/* ── Draw Unit Circle ── */
+function drawCircle2(step) {
+  const svg = document.getElementById('p2-circle-svg');
+  if (!step) { svg.innerHTML = ''; return; }
+  const n = step.circleN || 4;
+  const active = new Set(step.circleActive || []);
+  const phase = step.phase || '';
+
+  const CX = 110, CY = 110, R = 85;
+  let html = '';
+
+  // Axes
+  html += `<line x1="${CX-R-10}" y1="${CY}" x2="${CX+R+10}" y2="${CY}" stroke="var(--border)" stroke-width="0.5"/>`;
+  html += `<line x1="${CX}" y1="${CY-R-10}" x2="${CX}" y2="${CY+R+10}" stroke="var(--border)" stroke-width="0.5"/>`;
+  // Circle
+  html += `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="var(--border)" stroke-width="0.8"/>`;
+  // Unit labels
+  html += `<text x="${CX+R+4}" y="${CY+4}" fill="var(--text3)" font-size="9" font-family="Consolas,monospace">1</text>`;
+  html += `<text x="${CX-R-14}" y="${CY+4}" fill="var(--text3)" font-size="9" font-family="Consolas,monospace">-1</text>`;
+  html += `<text x="${CX+2}" y="${CY-R-4}" fill="var(--text3)" font-size="9" font-family="Consolas,monospace">i</text>`;
+  html += `<text x="${CX+2}" y="${CY+R+12}" fill="var(--text3)" font-size="9" font-family="Consolas,monospace">-i</text>`;
+
+  const phaseColor = phase.startsWith('IFFT') ? '#bc8cff' : '#58a6ff';
+
+  for (let k = 0; k < n; k++) {
+    const angle = -2 * Math.PI * k / n; // negative because SVG y is down
+    const px = CX + R * Math.cos(angle);
+    const py = CY + R * Math.sin(angle);
+    const isActive = active.has(k);
+    const color = isActive ? phaseColor : 'var(--text3)';
+    const r = isActive ? 5 : 3;
+
+    if (isActive) {
+      html += `<line x1="${CX}" y1="${CY}" x2="${px}" y2="${py}" stroke="${phaseColor}" stroke-width="0.5" opacity="0.3"/>`;
+    }
+    html += `<circle cx="${px}" cy="${py}" r="${r}" fill="${color}" opacity="${isActive ? 1 : 0.4}"/>`;
+    if (n <= 8 && isActive) {
+      const lx = CX + (R+18) * Math.cos(angle);
+      const ly = CY + (R+18) * Math.sin(angle);
+      html += `<text x="${lx}" y="${ly}" fill="${phaseColor}" font-size="9" font-family="Consolas,monospace" text-anchor="middle" dominant-baseline="central">ω^${k}</text>`;
+    }
+  }
+
+  // Phase indicator
+  const pColor = phase.startsWith('IFFT') ? '#bc8cff' : phase.startsWith('Pointwise') ? '#3fb950' : '#58a6ff';
+  html += `<text x="230" y="20" fill="${pColor}" font-size="11" font-weight="600" font-family="Segoe UI,sans-serif">${phase}</text>`;
+  html += `<text x="230" y="36" fill="var(--text3)" font-size="10" font-family="Segoe UI,sans-serif">n = ${n}, evaluating at ${n} points</text>`;
+
+  // Cancellation property note
+  if (n >= 4) {
+    const oppIdx = n/2;
+    const px1 = CX + R * Math.cos(0);
+    const py1 = CY + R * Math.sin(0);
+    const px2 = CX + R * Math.cos(-Math.PI);
+    const py2 = CY + R * Math.sin(-Math.PI);
+    html += `<line x1="${px1}" y1="${py1}" x2="${px2}" y2="${py2}" stroke="#d29922" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.5"/>`;
+    html += `<text x="230" y="60" fill="var(--text3)" font-size="10" font-family="Consolas,monospace">ω^(n/2) = -1 (dashed)</text>`;
+    html += `<text x="230" y="76" fill="var(--text3)" font-size="10" font-family="Consolas,monospace">Halving lemma enables recursion</text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+/* ── Draw Butterfly Diagram ── */
+function drawButterfly2(step) {
+  const svg = document.getElementById('p2-butterfly-svg');
+  if (!step || !step.n) { svg.innerHTML = ''; return; }
+
+  const n = step.n || 4;
+  const logN = Math.log2(n);
+  const phase = step.phase || '';
+  const bfHighlight = new Set((step.butterflyHighlight || []).map(b => `${b.top},${b.bot}`));
+
+  const phaseColor = phase.startsWith('IFFT') ? '#bc8cff' : '#58a6ff';
+  const activeColor = step.type === 'pointwise' || step.type === 'pointwise_start' ? '#3fb950' : phaseColor;
+
+  const PAD_L = 56, PAD_R = 20, PAD_T = 30, PAD_B = 20;
+  const NODE_H = Math.max(24, Math.min(40, 260 / n));
+  const LEVEL_W = Math.max(80, Math.min(110, 640 / (logN + 2)));
+  const totalW = PAD_L + (logN + 1) * LEVEL_W + PAD_R;
+  const totalH = PAD_T + n * NODE_H + PAD_B;
+
+  svg.setAttribute('viewBox', `0 0 ${totalW} ${totalH}`);
+
+  let html = '';
+
+  // Node positions: column = level (0 = input, logN+1 = output)
+  function nodeY(i) { return PAD_T + i * NODE_H + NODE_H / 2; }
+  function nodeX(level) { return PAD_L + level * LEVEL_W; }
+
+  // Draw input labels
+  for (let i = 0; i < n; i++) {
+    html += `<text x="${PAD_L - 8}" y="${nodeY(i)}" fill="var(--text2)" font-size="10" font-family="Consolas,monospace" text-anchor="end" dominant-baseline="central">a[${i}]</text>`;
+  }
+
+  // Draw horizontal wires at each level
+  for (let level = 0; level <= logN; level++) {
+    const x1 = nodeX(level);
+    const x2 = nodeX(level + 1);
+    for (let i = 0; i < n; i++) {
+      const y = nodeY(i);
+      const isActive = step.butterflyHighlight && step.butterflyHighlight.some(b => b.level === level+1 && (b.top === i || b.bot === i));
+      html += `<line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}" stroke="${isActive ? activeColor : 'var(--text3)'}" stroke-width="${isActive ? 1.5 : 0.8}" opacity="${isActive ? 0.9 : 0.3}"/>`;
+    }
+  }
+
+  // Draw butterflies for each level
+  for (let level = 1; level <= logN; level++) {
+    const len = 1 << level;
+    const half = len >> 1;
+    const x = nodeX(level);
+
+    for (let i = 0; i < n; i += len) {
+      for (let j = 0; j < half; j++) {
+        const top = i + j;
+        const bot = i + j + half;
+        const y1 = nodeY(top);
+        const y2 = nodeY(bot);
+        const isHighlighted = bfHighlight.has(`${top},${bot}`);
+        const color = isHighlighted ? activeColor : 'var(--text3)';
+        const sw = isHighlighted ? 1.8 : 0.7;
+        const op = isHighlighted ? 1 : 0.25;
+
+        // Butterfly cross lines
+        html += `<line x1="${x}" y1="${y1}" x2="${x + LEVEL_W * 0.6}" y2="${y2}" stroke="${color}" stroke-width="${sw}" opacity="${op}"/>`;
+        html += `<line x1="${x}" y1="${y2}" x2="${x + LEVEL_W * 0.6}" y2="${y1}" stroke="${color}" stroke-width="${sw}" opacity="${op}"/>`;
+
+        if (isHighlighted) {
+          // Twiddle label
+          html += `<text x="${x + LEVEL_W*0.3}" y="${(y1+y2)/2 - 3}" fill="#f0883e" font-size="9" font-family="Consolas,monospace" text-anchor="middle">ω^${j}</text>`;
+          // Output dots
+          html += `<circle cx="${x + LEVEL_W*0.6}" cy="${y1}" r="4" fill="${activeColor}"/>`;
+          html += `<circle cx="${x + LEVEL_W*0.6}" cy="${y2}" r="4" fill="${activeColor}"/>`;
+        }
+      }
+    }
+
+    // Level label
+    html += `<text x="${x + LEVEL_W*0.3}" y="18" fill="var(--text3)" font-size="9" text-anchor="middle" font-family="Segoe UI,sans-serif">L${level}</text>`;
+  }
+
+  // Output labels
+  for (let i = 0; i < n; i++) {
+    const isDone = step.type === 'done';
+    const isPointActive = step.type === 'pointwise' && step.k === i;
+    const color = isDone ? '#3fb950' : isPointActive ? '#3fb950' : 'var(--text2)';
+    html += `<text x="${nodeX(logN + 1) + 4}" y="${nodeY(i)}" fill="${color}" font-size="10" font-family="Consolas,monospace" dominant-baseline="central">Y[${i}]</text>`;
+  }
+
+  // Phase title
+  const pColor = phase.startsWith('IFFT') ? '#bc8cff' : phase.startsWith('Pointwise') ? '#3fb950' : '#58a6ff';
+  html += `<text x="${totalW/2}" y="14" fill="${pColor}" font-size="11" font-weight="600" text-anchor="middle" font-family="Segoe UI,sans-serif">${phase} — ${n} inputs, ${logN} levels, ${(n/2)*logN} butterflies total</text>`;
+
+  svg.innerHTML = html;
+}
+
+function buildSplitTreeLevels2(n) {
+  const logN = Math.log2(n);
+  const levels = [];
+  for (let level = 0; level <= logN; level++) {
+    const size = n >> level;
+    const nodes = [];
+    for (let start = 0; start < n; start += size) {
+      nodes.push({ start, end: start + size, size, level });
+    }
+    levels.push(nodes);
+  }
+  return levels;
+}
+
+function getPart2PhaseColor(phase) {
+  if (phase && phase.startsWith('IFFT')) return '#bc8cff';
+  if (phase && phase.startsWith('Pointwise')) return '#3fb950';
+  return '#58a6ff';
+}
+
+function drawSplitTree2(step, n) {
+  const svg = document.getElementById('p2-splittree-svg');
+  if (!svg || !n) return;
+
+  if (!p2State.splitTreeLevels || p2State.splitTreeLevels.length !== Math.log2(n) + 1) {
+    p2State.splitTreeLevels = buildSplitTreeLevels2(n);
+  }
+
+  const levels = p2State.splitTreeLevels;
+  const logN = levels.length - 1;
+  let activeLevel = 0;
+
+  if (step && step.type === 'butterfly_level') activeLevel = step.level;
+  else if (step && (step.type === 'pointwise' || step.type === 'pointwise_start' || step.type === 'done')) activeLevel = logN;
+
+  const phaseColor = getPart2PhaseColor(step ? step.phase : '');
+  const W = 760;
+  const H = 420;
+  const PAD_X = 28;
+  const PAD_Y = 28;
+  const NODE_H = 20;
+  const LEVEL_GAP = (W - PAD_X * 2 - 130) / Math.max(1, logN);
+  const X0 = PAD_X + 70;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  let html = '';
+  const coords = levels.map((nodes, level) => {
+    const x = X0 + level * LEVEL_GAP;
+    const innerH = H - PAD_Y * 2;
+    const rowGap = innerH / nodes.length;
+    return nodes.map((node, idx) => ({
+      ...node,
+      x,
+      y: PAD_Y + idx * rowGap + rowGap / 2,
+      w: Math.max(40, Math.min(88, LEVEL_GAP * 0.65)),
+      h: Math.min(NODE_H, Math.max(10, rowGap * 0.7))
+    }));
+  });
+
+  for (let level = 0; level < logN; level++) {
+    const parents = coords[level];
+    const children = coords[level + 1];
+    parents.forEach((p, i) => {
+      const c1 = children[i * 2];
+      const c2 = children[i * 2 + 1];
+      if (!c1 || !c2) return;
+      html += `<line x1="${p.x + p.w / 2}" y1="${p.y}" x2="${c1.x - c1.w / 2}" y2="${c1.y}" stroke="var(--border)" stroke-width="0.8" opacity="0.55"/>`;
+      html += `<line x1="${p.x + p.w / 2}" y1="${p.y}" x2="${c2.x - c2.w / 2}" y2="${c2.y}" stroke="var(--border)" stroke-width="0.8" opacity="0.55"/>`;
+    });
+  }
+
+  coords.forEach((nodes, level) => {
+    const isActiveLevel = level === activeLevel;
+    const showText = nodes.length <= 16;
+    nodes.forEach((node, idx) => {
+      let stroke = 'var(--border)';
+      let fill = 'var(--bg3)';
+      let op = 0.82;
+
+      if (isActiveLevel) {
+        stroke = phaseColor;
+        fill = 'rgba(88,166,255,0.18)';
+        op = 1;
+      }
+
+      if (step && step.type === 'pointwise' && level === logN && idx === step.k) {
+        stroke = '#3fb950';
+        fill = 'rgba(63,185,80,0.24)';
+        op = 1;
+      }
+
+      if (step && step.type === 'done' && level === logN) {
+        stroke = '#3fb950';
+        fill = 'rgba(63,185,80,0.2)';
+      }
+
+      html += `<rect x="${node.x - node.w / 2}" y="${node.y - node.h / 2}" width="${node.w}" height="${node.h}" rx="4" fill="${fill}" stroke="${stroke}" stroke-width="${isActiveLevel ? 1.5 : 1}" opacity="${op}"/>`;
+
+      if (showText) {
+        const label = level === 0 ? `0:${n}` : `${node.start}:${node.end}`;
+        html += `<text x="${node.x}" y="${node.y}" fill="var(--text2)" font-size="8" text-anchor="middle" dominant-baseline="central" font-family="Consolas,monospace">${label}</text>`;
+      }
+    });
+
+    html += `<text x="${nodes[0].x}" y="18" fill="${isActiveLevel ? phaseColor : 'var(--text3)'}" font-size="9" text-anchor="middle" font-family="Segoe UI,sans-serif">L${level}</text>`;
+  });
+
+  const phaseText = step ? (step.phase || 'Init') : 'Init';
+  const activeText = `Active split depth: L${activeLevel}`;
+  html += `<text x="12" y="${H - 16}" fill="var(--text3)" font-size="10" font-family="Segoe UI,sans-serif">${phaseText} • ${activeText}</text>`;
+
+  svg.innerHTML = html;
+}
+
+function toggleSplitTree2() {
+  const checked = document.getElementById('p2-show-splittree').checked;
+  p2State.showSplitTree = checked;
+  const wrap = document.getElementById('p2-splittree-wrap');
+  const svg = document.getElementById('p2-splittree-svg');
+  wrap.style.display = checked ? 'block' : 'none';
+  if (!checked) {
+    svg.innerHTML = '';
+    return;
+  }
+  if (p2State.currentStep >= 0 && p2State.steps.length) {
+    drawSplitTree2(p2State.steps[p2State.currentStep], p2State.fftN);
+  } else if (p2State.fftN) {
+    drawSplitTree2({ phase: 'Init', type: 'init' }, p2State.fftN);
+  }
+}
+
+/* ── Controls ── */
+function loadPreset2(a, b) {
+  document.getElementById('p2-polyA').value = a.join(', ');
+  document.getElementById('p2-polyB').value = b.join(', ');
+  updatePolyDisplay2();
+  p2Reset();
+}
+
+function getSpeed2() { return parseFloat(document.getElementById('p2-speed').value); }
+
+function setStatus2(s) {
+  p2State.status = s;
+  document.getElementById('p2-status').textContent = s;
+}
+
+function setButtons2(built) {
+  document.getElementById('p2-step').disabled = !built;
+  document.getElementById('p2-play').disabled = !built;
+  document.getElementById('p2-pause').disabled = !built;
+  document.getElementById('p2-reset').disabled = !built;
+}
+
+function updateStep2(idx) {
+  if (idx < 0 || idx >= p2State.steps.length) return;
+  p2State.currentStep = idx;
+  const step = p2State.steps[idx];
+
+  drawCircle2(step);
+  drawButterfly2({...step, n: p2State.fftN});
+  if (p2State.showSplitTree) {
+    drawSplitTree2(step, p2State.fftN);
+  }
+  highlightPCLine(2, step.pcLine);
+  document.getElementById('p2-explanation').innerHTML = step.explanation;
+  document.getElementById('p2-step-counter').textContent = `${idx + 1} / ${p2State.steps.length}`;
+  document.getElementById('p2-butterflies').textContent = step.butterflies;
+  document.getElementById('p2-mults').textContent = step.mults;
+  document.getElementById('p2-phase-label').textContent = step.phase || '—';
+
+  if (step.type === 'done' && step.coeffs) {
+    document.getElementById('p2-result-display').innerHTML =
+      `<span style="color:var(--text3)">A(x) × B(x) =</span> <span style="color:#3fb950">${polyToStr(step.coeffs)}</span><br>` +
+      `<span style="color:var(--text3);font-size:11px;">Coefficients: [${step.coeffs.join(', ')}]</span>`;
+  }
+
+  addHistory2(idx, step);
+
+  if (idx === p2State.steps.length - 1) {
+    setStatus2('Done');
+    clearTimeout(p2State.timer);
+    p2State.timer = null;
+  }
+}
+
+function addHistory2(idx, step) {
+  const tbody = document.getElementById('p2-history-body');
+  tbody.querySelectorAll('tr').forEach(r => r.classList.remove('current'));
+  let existing = tbody.querySelector(`tr[data-step="${idx}"]`);
+  if (!existing) {
+    const tr = document.createElement('tr');
+    tr.dataset.step = idx;
+    const detail = step.type === 'pointwise' ? `k=${step.k}` : step.type === 'butterfly_level' ? `L${step.level}/${step.logN}` : step.type;
+    tr.innerHTML = `<td>${idx+1}</td><td>${step.phase}</td><td>${step.type}</td><td>${detail}</td>`;
+    tr.onclick = () => { updateStep2(idx); setStatus2('Paused'); };
+    if (tbody.children.length >= 30) tbody.removeChild(tbody.firstChild);
+    tbody.appendChild(tr);
+    existing = tr;
+  }
+  existing.classList.add('current');
+  safeScrollIntoView(existing);
+}
+
+function p2Build() {
+  const A = parsePoly('p2-polyA');
+  const B = parsePoly('p2-polyB');
+  if (!A.length || !B.length) { alert('Please enter valid polynomial coefficients.'); return; }
+  if (A.length + B.length > 33) { alert('Please use polynomials with fewer than 17 coefficients each for visualization.'); return; }
+
+  updatePolyDisplay2();
+  p2State.polyA = A;
+  p2State.polyB = B;
+  p2State.fftN = nextPow2(A.length + B.length - 1);
+  p2State.splitTreeLevels = null;
+  p2State.steps = generateSteps2(A, B);
+  p2State.currentStep = -1;
+  document.getElementById('p2-history-body').innerHTML = '';
+  if (p2State.timer) { clearTimeout(p2State.timer); p2State.timer = null; }
+
+  const n = p2State.fftN;
+  const fftOps = Math.round((n / 2) * Math.log2(n) * 3);
+  const naiveOps = A.length * B.length;
+  document.getElementById('p2-fft-ops').textContent = fftOps;
+  document.getElementById('p2-naive-ops').textContent = naiveOps;
+  document.getElementById('p2-speedup-note').textContent =
+    `For this input (n=${n}): FFT uses ~${fftOps} operations vs naïve's ${naiveOps}. ${naiveOps > fftOps ? `FFT is ${(naiveOps/fftOps).toFixed(1)}× faster.` : 'At small n, naïve is competitive — FFT wins at large scale.'}`;
+
+  setStatus2('Ready');
+  setButtons2(true);
+  document.getElementById('p2-step-counter').textContent = `0 / ${p2State.steps.length}`;
+  document.getElementById('p2-butterflies').textContent = 0;
+  document.getElementById('p2-mults').textContent = 0;
+  document.getElementById('p2-phase-label').textContent = '—';
+  document.getElementById('p2-explanation').innerHTML = `<strong>Ready!</strong> Built <strong>${p2State.steps.length}</strong> steps. Input size padded to n = ${n}. Click <strong>Step</strong> or <strong>Play</strong> to begin.`;
+  drawCircle2(p2State.steps[0]);
+  drawButterfly2({...p2State.steps[0], n});
+  if (p2State.showSplitTree) {
+    drawSplitTree2(p2State.steps[0], n);
+  }
+}
+
+function p2Step() {
+  if (p2State.timer) { clearTimeout(p2State.timer); p2State.timer = null; }
+  const next = p2State.currentStep + 1;
+  if (next < p2State.steps.length) { updateStep2(next); setStatus2('Paused'); }
+}
+
+function p2Play() {
+  if (p2State.timer) return;
+  if (p2State.currentStep >= p2State.steps.length - 1) p2State.currentStep = -1;
+  setStatus2('Playing');
+  function tick() {
+    const next = p2State.currentStep + 1;
+    if (next >= p2State.steps.length) {
+      p2State.timer = null; setStatus2('Done'); return;
+    }
+    updateStep2(next);
+    if (p2State.status === 'Playing') {
+      p2State.timer = setTimeout(tick, Math.max(150, 900 / getSpeed2()));
+    }
+  }
+  p2State.timer = setTimeout(tick, Math.max(150, 900 / getSpeed2()));
+}
+
+function p2Pause() {
+  if (p2State.timer) { clearTimeout(p2State.timer); p2State.timer = null; }
+  setStatus2('Paused');
+}
+
+function p2Reset() {
+  if (p2State.timer) { clearTimeout(p2State.timer); p2State.timer = null; }
+  p2State.steps = []; p2State.currentStep = -1;
+  document.getElementById('p2-history-body').innerHTML = '';
+  document.getElementById('p2-step-counter').textContent = '0 / 0';
+  document.getElementById('p2-butterflies').textContent = 0;
+  document.getElementById('p2-mults').textContent = 0;
+  document.getElementById('p2-phase-label').textContent = '—';
+  document.getElementById('p2-explanation').innerHTML = '<strong>🎓 Step Explanation:</strong> Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to begin.';
+  document.getElementById('p2-result-display').textContent = 'Enter polynomials and click Build Steps to see the result.';
+  document.getElementById('p2-fft-ops').textContent = '—';
+  document.getElementById('p2-naive-ops').textContent = '—';
+  document.getElementById('p2-speedup-note').textContent = '';
+  document.getElementById('p2-circle-svg').innerHTML = '';
+  document.getElementById('p2-butterfly-svg').innerHTML = '';
+  document.getElementById('p2-splittree-svg').innerHTML = '';
+  highlightPCLine(2, -1);
+  setStatus2('Idle');
+  setButtons2(false);
+}
+
+/* ── init ── */
+updateSpeedLabel(2);
+document.getElementById('p2-polyA').addEventListener('input', updatePolyDisplay2);
+document.getElementById('p2-polyB').addEventListener('input', updatePolyDisplay2);
+updatePolyDisplay2();
+
+/* ════════════════════════════════════════
+   PART 3 — MILLER-RABIN PRIMALITY TEST
+════════════════════════════════════════ */
+
+const p3State = {
+  n: 0, s: 0, d: 0,
+  steps: [], currentStep: -1,
+  timer: null, status: 'Idle',
+  witnesses: [], roundResults: []
+};
+
+/* ── BigInt-safe modular exponentiation (works for n up to ~2^53) ── */
+function modPow(base, exp, mod) {
+  if (mod === 1n) return 0n;
+  let result = 1n;
+  base = base % mod;
+  while (exp > 0n) {
+    if (exp % 2n === 1n) result = result * base % mod;
+    exp = exp >> 1n;
+    base = base * base % mod;
+  }
+  return result;
+}
+
+/* ── Decompose n-1 = 2^s * d ── */
+function decompose(n) {
+  let d = BigInt(n) - 1n;
+  let s = 0;
+  while (d % 2n === 0n) { d /= 2n; s++; }
+  return { s, d };
+}
+
+/* ── Fermat test (for comparison) ── */
+function fermatTest(n, a) {
+  const nb = BigInt(n), ab = BigInt(a);
+  return modPow(ab, nb - 1n, nb) === 1n;
+}
+
+/* ── Miller-Rabin single witness — returns full chain ── */
+function mrWitness(n, a) {
+  const nb = BigInt(n), ab = BigInt(a);
+  const { s, d } = decompose(n);
+  const chain = [];
+  let x = modPow(ab, d, nb);
+  chain.push({ exp: `a^d`, expLabel: `${a}^${d}`, val: Number(x), r: 0 });
+
+  if (x === 1n || x === nb - 1n) {
+    return { result: 'pass_initial', chain, s, d: Number(d) };
+  }
+
+  for (let r = 1; r < s; r++) {
+    x = x * x % nb;
+    chain.push({ exp: `a^(2^${r}·d)`, expLabel: `${a}^(${Math.pow(2,r)}·${d})`, val: Number(x), r });
+    if (x === nb - 1n) {
+      return { result: 'pass_neg1', chain, s, d: Number(d), passAt: r };
+    }
+  }
+  return { result: 'composite', chain, s, d: Number(d) };
+}
+
+/* ── Deterministic witnesses for small n ── */
+function getWitnesses(n, k) {
+  // Deterministic for n < 3,215,031,751
+  const det = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
+  if (n <= 3) return [];
+  if (n < 3215031751) {
+    return det.filter(a => a <= n - 2).slice(0, Math.min(k, 4));
+  }
+  // Pseudorandom for larger n
+  const ws = [];
+  const used = new Set();
+  for (let i = 0; i < k; i++) {
+    let a;
+    do { a = 2 + Math.floor(Math.random() * (n - 4)); } while (used.has(a));
+    used.add(a);
+    ws.push(a);
+  }
+  return ws;
+}
+
+/* ── Generate all steps ── */
+function generateSteps3(n, k) {
+  const steps = [];
+  const nb = BigInt(n);
+  const { s, d } = decompose(n);
+  const deterministicLimit = 3215031751;
+  const isDeterministic = n < deterministicLimit;
+  const requestedRounds = k;
+  let modMults = 0;
+  const witnesses = getWitnesses(n, k);
+  const executedRounds = witnesses.length;
+  const roundResults = [];
+
+  // Init
+  steps.push({
+    type: 'init', pcLine: 0,
+    n, s, d: Number(d), witnesses,
+    isDeterministic,
+    requestedRounds,
+    executedRounds,
+    modMults: 0, round: 0,
+    chainState: [], roundsDone: [],
+    explanation: n === 3
+      ? `<strong>Initialize:</strong> n = <strong>3</strong> is a small prime boundary case. We will still show decomposition, then conclude deterministically.`
+      : `<strong>Initialize:</strong> Testing n = <strong>${n}</strong>. Requested rounds: <strong>${requestedRounds}</strong>, executed rounds: <strong>${executedRounds}</strong>${isDeterministic ? ' (deterministic witness set)' : ''}. First, write n−1 = <strong>${n-1}</strong> as 2ˢ · d where d is odd.`,
+    verdict: null
+  });
+
+  // Decomposition steps
+  let tmp = n - 1, tmpS = 0;
+  steps.push({
+    type: 'decomp_start', pcLine: 1,
+    n, s, d: Number(d), modMults: 0, round: 0,
+    decompStep: -1, decompVal: n - 1, decompS: 0,
+    chainState: [], roundsDone: [],
+    explanation: `<strong>Decompose n−1 = ${n-1}:</strong> We divide by 2 repeatedly until we get an odd number. Starting with ${n-1}.`,
+    verdict: null
+  });
+
+  let dv = n - 1, sv = 0;
+  while (dv % 2 === 0) {
+    dv /= 2; sv++;
+    steps.push({
+      type: 'decomp_step', pcLine: 1,
+      n, s, d: Number(d), modMults: 0, round: 0,
+      decompStep: sv, decompVal: dv, decompS: sv,
+      chainState: [], roundsDone: [],
+      explanation: `<strong>Divide by 2 (step ${sv}):</strong> ${dv * 2} ÷ 2 = <strong>${dv}</strong>. ${dv % 2 === 0 ? 'Still even, continue.' : `<span style="color:#3fb950">Odd! Stop here.</span> So s = ${sv}, d = ${dv}.`}`,
+      verdict: null
+    });
+  }
+
+  steps.push({
+    type: 'decomp_done', pcLine: 1,
+    n, s, d: Number(d), modMults: 0, round: 0,
+    chainState: [], roundsDone: [],
+    explanation: n === 3
+      ? `<strong>Decomposition complete:</strong> 3−1 = 2 = 2^<strong>${s}</strong> × <strong>${Number(d)}</strong>. This boundary case is prime deterministically, so witness rounds are not required.`
+      : `<strong>Decomposition complete:</strong> n−1 = ${n-1} = 2^<strong>${s}</strong> × <strong>${Number(d)}</strong>. We'll compute a^${Number(d)} mod n, then square ${s} time${s>1?'s':''}.`,
+    verdict: null
+  });
+
+  // Per-witness rounds
+  let compositeFound = false;
+  for (let wi = 0; wi < witnesses.length; wi++) {
+    const a = witnesses[wi];
+    const { result, chain } = mrWitness(n, a);
+    roundResults.push({ a, result, chain });
+
+    // Announce round
+    steps.push({
+      type: 'round_start', pcLine: 3,
+      n, s, d: Number(d), round: wi + 1,
+      a, witnesses, modMults,
+      chainState: [], roundsDone: [...roundResults.slice(0, wi)],
+      explanation: `<strong>Round ${wi+1}/${witnesses.length} — Witness a = ${a}:</strong> Check whether a = ${a} reveals that ${n} is composite. First compute x = ${a}^${Number(d)} mod ${n} using square-and-multiply.`,
+      verdict: null
+    });
+
+    // Modpow steps
+    const expBits = Number(d).toString(2);
+    let base = a % n, res = 1, mm = 0;
+    let expTmp = Number(d);
+    for (let bi = expBits.length - 1; bi >= 0; bi--) {
+      const bit = (expTmp >> bi) & 1;
+      if (bi < expBits.length - 1) {
+        res = (res * res) % n; mm++;
+        if (bit) { res = (res * a) % n; mm++; }
+      }
+    }
+    modMults += Math.ceil(2 * Math.log2(Number(d) + 1));
+
+    steps.push({
+      type: 'modpow_done', pcLine: 4,
+      n, s, d: Number(d), round: wi + 1, a, modMults,
+      x: chain[0].val,
+      chainState: [chain[0]],
+      roundsDone: [...roundResults.slice(0, wi)],
+      explanation: `<strong>a^d mod n =</strong> ${a}^${Number(d)} mod ${n} = <strong>${chain[0].val}</strong>. ${chain[0].val === 1 ? `<span style="color:#3fb950">x = 1 → passes immediately!</span>` : chain[0].val === n - 1 ? `<span style="color:#3fb950">x = n−1 = ${n-1} → passes immediately!</span>` : `x ≠ 1 and x ≠ n−1 (${n-1}). Must check squaring chain.`}`,
+      verdict: null
+    });
+
+    if (result === 'pass_initial') {
+      steps.push({
+        type: 'round_pass', pcLine: 5,
+        n, s, d: Number(d), round: wi + 1, a, modMults,
+        chainState: chain,
+        roundsDone: [...roundResults.slice(0, wi + 1)],
+        explanation: `<strong>Round ${wi+1} PASSES:</strong> a^d mod n = ${chain[0].val} which is ${chain[0].val === 1 ? '1' : 'n−1'}. Witness a = ${a} is consistent with ${n} being prime.`,
+        verdict: null
+      });
+      continue;
+    }
+
+    // Squaring steps
+    for (let ci = 1; ci < chain.length; ci++) {
+      modMults++;
+      const prev = chain[ci - 1].val;
+      const curr = chain[ci].val;
+      steps.push({
+        type: 'square_step', pcLine: 7,
+        n, s, d: Number(d), round: wi + 1, a, modMults,
+        r: ci, prev, curr,
+        chainState: chain.slice(0, ci + 1),
+        roundsDone: [...roundResults.slice(0, wi)],
+        explanation: `<strong>Square step r=${ci}:</strong> x = ${prev}² mod ${n} = <strong>${curr}</strong>. ${curr === n - 1 ? `<span style="color:#3fb950">x = n−1 = ${n-1} → chain is valid, this witness passes!</span>` : curr === 1 ? `<span style="color:#f85149">x became 1 without ever seeing n−1 = ${n-1}. This is a non-trivial square root of 1 — ${n} is COMPOSITE!</span>` : `Neither 1 nor n−1 yet. Continue squaring.`}`,
+        verdict: chain[ci].val === n - 1 ? null : chain[ci].val === 1 ? 'composite' : null
+      });
+
+      if (curr === n - 1) {
+        steps.push({
+          type: 'round_pass', pcLine: 8,
+          n, s, d: Number(d), round: wi + 1, a, modMults,
+          chainState: chain,
+          roundsDone: [...roundResults.slice(0, wi + 1)],
+          explanation: `<strong>Round ${wi+1} PASSES:</strong> Saw x = n−1 = ${n-1} at squaring step r=${ci}. Witness a = ${a} is satisfied — this is consistent with ${n} being prime.`,
+          verdict: null
+        });
+        break;
+      }
+      if (curr === 1 || ci === chain.length - 1) {
+        compositeFound = true;
+        break;
+      }
+    }
+
+    if (result === 'composite') {
+      steps.push({
+        type: 'composite_found', pcLine: 9,
+        n, s, d: Number(d), round: wi + 1, a, modMults,
+        chainState: chain,
+        roundsDone: [...roundResults.slice(0, wi + 1)],
+        explanation: `<strong>COMPOSITE DETECTED!</strong> Witness a = ${a} found a non-trivial square root of 1 mod ${n}. The squaring chain never reached n−1 = ${n-1} before hitting 1. Therefore <strong>${n} is definitely COMPOSITE</strong>.`,
+        verdict: 'composite'
+      });
+      break;
+    }
+  }
+
+  // Final verdict
+  if (n === 3) {
+    steps.push({
+      type: 'done', pcLine: 10,
+      n, s, d: Number(d), modMults,
+      requestedRounds,
+      executedRounds: 0,
+      isDeterministic: true,
+      roundsDone: [],
+      chainState: [],
+      isComposite: false,
+      confidence: 100,
+      fermatResults: [{ a: 2, passes: true, val: 1 }],
+      explanation: `<strong>FINAL VERDICT: 3 is PRIME.</strong> This is a deterministic small-input boundary case, so no witness rounds are required. Confidence: 100%.`,
+      verdict: 'prime'
+    });
+    return { steps, witnesses, roundResults, s, d: Number(d) };
+  }
+
+  const isComposite = roundResults.some(r => r.result === 'composite');
+  const roundsUsed = roundResults.length;
+  const confidence = isComposite
+    ? 100
+    : isDeterministic
+      ? 100
+      : (roundsUsed > 0 ? (1 - Math.pow(4, -roundsUsed)) * 100 : 0);
+
+  // Fermat comparison
+  const fermatWitnesses = witnesses.length ? witnesses.slice(0, 3) : [2];
+  const fermatResults = fermatWitnesses.map(a => ({
+    a, passes: fermatTest(n, a),
+    val: Number(modPow(BigInt(a), BigInt(n) - 1n, BigInt(n)))
+  }));
+
+  steps.push({
+    type: 'done', pcLine: isComposite ? 9 : 10,
+    n, s, d: Number(d), modMults,
+    requestedRounds,
+    executedRounds,
+    isDeterministic,
+    roundsDone: roundResults,
+    chainState: [],
+    isComposite, confidence,
+    fermatResults,
+    explanation: isComposite
+      ? `<strong>FINAL VERDICT: ${n} is COMPOSITE.</strong> At least one witness found a non-trivial square root of 1. Result is 100% certain — no false positives possible.`
+      : isDeterministic
+        ? `<strong>FINAL VERDICT: ${n} is PRIME (deterministic range).</strong> Used ${executedRounds} deterministic witness${executedRounds !== 1 ? 'es' : ''}. This result is guaranteed for n < 3,215,031,751.`
+        : `<strong>FINAL VERDICT: ${n} is PROBABLY PRIME.</strong> All ${roundsUsed} witness${roundsUsed>1?'es':''} passed. Confidence: ${confidence.toFixed(4)}%. Error probability ≤ 4^−${roundsUsed} ≈ ${Math.pow(4,-roundsUsed).toExponential(1)}.`,
+    verdict: isComposite ? 'composite' : 'prime'
+  });
+
+  return { steps, witnesses, roundResults, s, d: Number(d) };
+}
+
+/* ── Draw decomposition SVG ── */
+function drawDecomp3(step) {
+  const svg = document.getElementById('p3-decomp-svg');
+  if (!step || !step.n) { svg.innerHTML = ''; return; }
+  const { n, s, d } = step;
+  let html = '';
+
+  // Show: n-1 = __ = 2^s × d
+  const nm1 = n - 1;
+  const boxW = 90, boxH = 44, gap = 14;
+  const colors = ['#bc8cff', '#58a6ff', '#3fb950', '#d29922'];
+
+  // n-1 box
+  html += `<rect x="10" y="23" width="${boxW}" height="${boxH}" rx="6" fill="#21262d" stroke="#bc8cff" stroke-width="1.5"/>`;
+  html += `<text x="${10 + boxW/2}" y="40" text-anchor="middle" fill="#bc8cff" font-size="13" font-weight="600" font-family="Consolas,monospace" dominant-baseline="central">n−1</text>`;
+  html += `<text x="${10 + boxW/2}" y="58" text-anchor="middle" fill="#e6edf3" font-size="12" font-family="Consolas,monospace" dominant-baseline="central">${nm1}</text>`;
+
+  html += `<text x="${10+boxW+8}" y="46" fill="var(--text3)" font-size="13" font-family="Consolas,monospace" dominant-baseline="central">=</text>`;
+
+  // Division steps
+  const decompStep = step.decompStep !== undefined ? step.decompStep : s;
+  let cur = nm1;
+  let steps2 = [];
+  let tmp2 = nm1, stmp = 0;
+  while (tmp2 % 2 === 0) { tmp2 /= 2; stmp++; steps2.push({ val: tmp2, s: stmp }); }
+
+  let startX = 10 + boxW + gap + 18;
+  for (let i = 0; i < steps2.length; i++) {
+    const active = (step.type === 'decomp_step' && step.decompStep === i + 1)
+                || (step.type === 'decomp_done' || (step.decompStep === undefined && i < s));
+    const done = step.type === 'decomp_done' || (step.decompStep !== undefined && i + 1 <= step.decompStep);
+    const color = done ? '#3fb950' : active ? '#d29922' : '#6e7681';
+
+    html += `<text x="${startX}" y="46" fill="${color}" font-size="11" font-family="Consolas,monospace" dominant-baseline="central">÷2</text>`;
+    startX += 26;
+    html += `<rect x="${startX}" y="23" width="58" height="${boxH}" rx="5" fill="#21262d" stroke="${done ? '#3fb950' : '#30363d'}" stroke-width="${done ? 1.5 : 1}"/>`;
+    html += `<text x="${startX + 29}" y="${boxH/2 + 19}" text-anchor="middle" fill="${done ? '#3fb950' : '#8b949e'}" font-size="12" font-family="Consolas,monospace" dominant-baseline="central">${steps2[i].val}</text>`;
+    startX += 58 + 4;
+
+    if (steps2[i].val % 2 !== 0) break; // odd — stop
+  }
+
+  // Final result: = 2^s × d
+  if (step.type === 'decomp_done' || step.type === 'round_start' || step.type === 'modpow_done' || step.type === 'square_step' || step.type === 'round_pass' || step.type === 'composite_found' || step.type === 'done') {
+    html += `<text x="${startX + 8}" y="46" fill="var(--text3)" font-size="11" font-family="Consolas,monospace" dominant-baseline="central">→</text>`;
+    startX += 28;
+    html += `<rect x="${startX}" y="18" width="120" height="${boxH + 8}" rx="6" fill="rgba(63,185,80,0.1)" stroke="#3fb950" stroke-width="1.5"/>`;
+    html += `<text x="${startX + 60}" y="38" text-anchor="middle" fill="#3fb950" font-size="13" font-weight="600" font-family="Consolas,monospace" dominant-baseline="central">2^${s} × ${d}</text>`;
+    html += `<text x="${startX + 60}" y="56" text-anchor="middle" fill="#8b949e" font-size="10" font-family="Consolas,monospace" dominant-baseline="central">s=${s}, d=${d} (odd)</text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+/* ── Draw squaring chain SVG ── */
+function drawChain3(step) {
+  const svg = document.getElementById('p3-chain-svg');
+  if (!step || !step.n || !step.chainState || !step.chainState.length) {
+    svg.innerHTML = step && step.n ? `<text x="380" y="80" text-anchor="middle" fill="#6e7681" font-size="12" font-family="Segoe UI,sans-serif">Chain will appear after a^d is computed</text>` : '';
+    return;
+  }
+
+  const { n, s, d } = step;
+  const chain = step.chainState;
+  const nm1 = n - 1;
+
+  const totalSlots = s + 1; // a^d plus s squarings
+  const BOX_W = Math.min(110, Math.max(70, 680 / (totalSlots + 1)));
+  const BOX_H = 54;
+  const GAP = 24;
+  const PAD = 20;
+  const totalW = PAD * 2 + totalSlots * BOX_W + (totalSlots - 1) * GAP;
+  const totalH = 130;
+  svg.setAttribute('viewBox', `0 0 ${Math.max(760, totalW)} ${totalH}`);
+
+  let html = '';
+  const startX = (Math.max(760, totalW) - (totalSlots * BOX_W + (totalSlots - 1) * GAP)) / 2;
+
+  for (let i = 0; i < totalSlots; i++) {
+    const x = startX + i * (BOX_W + GAP);
+    const y = 30;
+    const chainItem = chain[i];
+
+    // Label above
+    const expLabel = i === 0 ? `a^d` : `a^(2^${i}·d)`;
+    const shortLabel = i === 0 ? `a^${d}` : `a^(${Math.pow(2,i)}·${d})`;
+    html += `<text x="${x + BOX_W/2}" y="22" text-anchor="middle" fill="#6e7681" font-size="9" font-family="Consolas,monospace">${shortLabel} mod n</text>`;
+
+    let boxColor = '#30363d', textColor = '#8b949e', borderColor = '#30363d';
+    let label2 = '';
+
+    if (chainItem) {
+      const v = chainItem.val;
+      if (v === 1 && i === 0) { boxColor = 'rgba(63,185,80,0.12)'; borderColor = '#3fb950'; textColor = '#3fb950'; label2 = '= 1 ✓'; }
+      else if (v === nm1) { boxColor = 'rgba(63,185,80,0.12)'; borderColor = '#3fb950'; textColor = '#3fb950'; label2 = `= n−1 ✓`; }
+      else if (v === 1 && i > 0) { boxColor = 'rgba(248,81,73,0.12)'; borderColor = '#f85149'; textColor = '#f85149'; label2 = `= 1 ✗`; }
+      else if (step.type === 'square_step' && step.r === i) { boxColor = 'rgba(210,153,34,0.15)'; borderColor = '#d29922'; textColor = '#d29922'; label2 = '← active'; }
+      else { boxColor = 'rgba(88,166,255,0.08)'; borderColor = '#58a6ff'; textColor = '#58a6ff'; }
+    }
+
+    html += `<rect x="${x}" y="${y}" width="${BOX_W}" height="${BOX_H}" rx="6" fill="${boxColor}" stroke="${borderColor}" stroke-width="1.5"/>`;
+    if (chainItem) {
+      html += `<text x="${x + BOX_W/2}" y="${y + 22}" text-anchor="middle" fill="${textColor}" font-size="14" font-weight="600" font-family="Consolas,monospace" dominant-baseline="central">${chainItem.val}</text>`;
+      html += `<text x="${x + BOX_W/2}" y="${y + 40}" text-anchor="middle" fill="${textColor}" font-size="10" font-family="Consolas,monospace" dominant-baseline="central">${label2}</text>`;
+    } else {
+      html += `<text x="${x + BOX_W/2}" y="${y + 27}" text-anchor="middle" fill="#30363d" font-size="12" font-family="Consolas,monospace" dominant-baseline="central">?</text>`;
+    }
+
+    // Arrow to next
+    if (i < totalSlots - 1) {
+      const ax = x + BOX_W + 4;
+      const ay = y + BOX_H / 2;
+      html += `<line x1="${ax}" y1="${ay}" x2="${ax + GAP - 8}" y2="${ay}" stroke="#30363d" stroke-width="1.2"/>`;
+      html += `<polygon points="${ax+GAP-8},${ay-4} ${ax+GAP-2},${ay} ${ax+GAP-8},${ay+4}" fill="#30363d"/>`;
+      html += `<text x="${ax + GAP/2 - 2}" y="${ay - 6}" text-anchor="middle" fill="#6e7681" font-size="9" font-family="Consolas,monospace">²</text>`;
+    }
+  }
+
+  // Witness label
+  if (step.a) {
+    html += `<text x="10" y="115" fill="#8b949e" font-size="11" font-family="Segoe UI,sans-serif">Witness a = ${step.a}, n = ${n}, n−1 = ${nm1}</text>`;
+  }
+
+  svg.innerHTML = html;
+}
+
+/* ── Update witness rounds display ── */
+function updateRoundsDisplay3(step) {
+  const el = document.getElementById('p3-rounds-display');
+  if (!step || !step.roundsDone || !step.roundsDone.length) {
+    if (step && step.isDeterministic && step.n === 3) {
+      el.innerHTML = 'Deterministic small-input case: n=3 is prime, so no witness rounds are required.';
+      return;
+    }
+    el.innerHTML = 'Run Build Steps to see witness results here.';
+    return;
+  }
+
+  const rows = step.roundsDone.map((r, i) => {
+    const color = r.result === 'composite' ? '#f85149' : '#3fb950';
+    const icon = r.result === 'composite' ? '✗ COMPOSITE' : '✓ Passes';
+    const conf = step.isDeterministic
+      ? '100% (deterministic)'
+      : (r.result === 'composite' ? '100%' : `≥${((1 - Math.pow(4, -(i+1)))*100).toFixed(2)}%`);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border);">
+      <span style="min-width:60px;font-size:11px;color:var(--text3)">Round ${i+1}</span>
+      <span style="min-width:50px;font-weight:600;color:var(--accent);font-family:Consolas,monospace">a = ${r.a}</span>
+      <span style="min-width:80px;color:${color};font-weight:600">${icon}</span>
+      <span style="color:var(--text3);font-size:11px;">Confidence: ${conf}</span>
+    </div>`;
+  }).join('');
+
+  const total = step.roundsDone.length;
+  const allPass = step.roundsDone.every(r => r.result !== 'composite');
+  const conf = allPass
+    ? (step.isDeterministic ? '100% (deterministic)' : `${((1 - Math.pow(4, -total))*100).toFixed(4)}%`)
+    : '100%';
+  el.innerHTML = rows + `<div style="padding:6px 0 0;font-size:11px;color:var(--text3);">Cumulative confidence after ${total} round${total>1?'s':''}: <strong style="color:${allPass?'#3fb950':'#f85149'}">${conf}</strong></div>`;
+}
+
+/* ── Update Fermat comparison ── */
+function updateFermat3(step) {
+  const el = document.getElementById('p3-fermat-display');
+  if (!step || step.type !== 'done' || !step.fermatResults) {
+    el.innerHTML = 'Enter a number and click Build Steps to compare Fermat and Miller-Rabin on the same input.';
+    return;
+  }
+  const { n, fermatResults, isComposite } = step;
+  const nm1 = n - 1;
+  const isCarmichael = !isComposite ? false : fermatResults.every(r => r.passes);
+  const deterministicNote = step.isDeterministic
+    ? '<div style="margin-top:8px;font-size:11px;color:var(--text3);">Deterministic range note: for n &lt; 3,215,031,751 this witness set provides a guaranteed result.</div>'
+    : '';
+
+  let html = `<div style="margin-bottom:8px;font-size:12px;"><strong>n = ${n}${isCarmichael ? ' <span style="color:#f0883e">(Carmichael number!)</span>' : ''}</strong></div>`;
+  html += `<table style="width:100%;border-collapse:collapse;font-size:11px;">
+    <tr style="color:var(--text3)"><th style="text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)">Test</th><th style="text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)">Witness a</th><th style="text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)">a^(n−1) mod n</th><th style="text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)">Fermat says</th><th style="text-align:left;padding:4px 6px;border-bottom:1px solid var(--border)">Miller-Rabin says</th></tr>`;
+
+  fermatResults.forEach(r => {
+    const fermatSays = r.passes ? `<span style="color:${isComposite?'#f0883e':'#3fb950'}">${isComposite?'⚠ PRIME (WRONG!)':'PRIME'}</span>` : `<span style="color:#3fb950">Composite ✓</span>`;
+    const mrResult = step.roundsDone && step.roundsDone.find(rd => rd.a === r.a);
+    const mrSays = mrResult ? (mrResult.result === 'composite' ? `<span style="color:#3fb950">Composite ✓</span>` : `<span style="color:#3fb950">Passes ✓</span>`) : '—';
+    html += `<tr style="border-bottom:1px solid rgba(48,54,61,0.5)">
+      <td style="padding:4px 6px;color:var(--text2)">Fermat</td>
+      <td style="padding:4px 6px;font-family:Consolas,monospace;color:var(--accent)">${r.a}</td>
+      <td style="padding:4px 6px;font-family:Consolas,monospace;color:var(--text2)">${r.val}</td>
+      <td style="padding:4px 6px">${fermatSays}</td>
+      <td style="padding:4px 6px">${mrSays}</td>
+    </tr>`;
+  });
+  html += '</table>';
+
+  if (isCarmichael) {
+    html += `<div style="margin-top:10px;padding:8px 10px;background:rgba(240,136,62,0.1);border:1px solid rgba(240,136,62,0.3);border-radius:5px;font-size:11px;color:#f0883e;line-height:1.6;">
+      <strong>⚠ Carmichael number detected!</strong> Fermat's test says "prime" for all witnesses above — completely wrong. Miller-Rabin correctly identifies ${n} as composite by finding a non-trivial square root of 1 in the squaring chain.
+    </div>`;
+  }
+  html += deterministicNote;
+  el.innerHTML = html;
+}
+
+/* ── Update verdict ── */
+function updateVerdict3(step) {
+  const el = document.getElementById('p3-verdict');
+  if (!step || !step.verdict) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  if (step.verdict === 'composite') {
+    el.style.background = 'rgba(248,81,73,0.1)';
+    el.style.borderColor = '#f85149';
+    el.style.color = '#f85149';
+    el.innerHTML = `✗ &nbsp; ${step.n} is COMPOSITE &nbsp; (100% certain)`;
+  } else {
+    el.style.background = 'rgba(63,185,80,0.1)';
+    el.style.borderColor = '#3fb950';
+    el.style.color = '#3fb950';
+    if (step.isDeterministic) {
+      el.innerHTML = `✓ &nbsp; ${step.n} is PRIME &nbsp; (deterministic guarantee)`;
+    } else {
+      const conf = ((1 - Math.pow(4, -(step.roundsDone ? step.roundsDone.length : 1)))*100).toFixed(4);
+      el.innerHTML = `✓ &nbsp; ${step.n} is PROBABLY PRIME &nbsp; (confidence: ${conf}%)`;
+    }
+  }
+}
+
+/* ── UI controls ── */
+function loadPreset3(n, rounds) {
+  document.getElementById('p3-n').value = n;
+  document.getElementById('p3-rounds').value = rounds;
+  p3Reset();
+}
+
+function getSpeed3() { return parseFloat(document.getElementById('p3-speed').value); }
+
+function setStatus3(s) {
+  p3State.status = s;
+  document.getElementById('p3-status').textContent = s;
+}
+
+function setButtons3(built) {
+  ['p3-step','p3-play','p3-pause','p3-reset'].forEach(id => {
+    document.getElementById(id).disabled = !built;
+  });
+}
+
+function updateStep3(idx) {
+  if (idx < 0 || idx >= p3State.steps.length) return;
+  p3State.currentStep = idx;
+  const step = p3State.steps[idx];
+
+  drawDecomp3(step);
+  drawChain3(step);
+  updateRoundsDisplay3(step);
+  if (step.type === 'done') { updateFermat3(step); updateVerdict3(step); }
+  else { updateVerdict3(null); }
+
+  highlightPCLine(3, step.pcLine);
+  document.getElementById('p3-explanation').innerHTML = step.explanation;
+  document.getElementById('p3-step-counter').textContent = `${idx + 1} / ${p3State.steps.length}`;
+  document.getElementById('p3-modmults').textContent = step.modMults || 0;
+  document.getElementById('p3-round-counter').textContent = step.round || 0;
+
+  // Confidence
+  if (step.roundsDone && step.roundsDone.length) {
+    const allPass = step.roundsDone.every(r => r.result !== 'composite');
+    const conf = allPass
+      ? (step.isDeterministic ? '100%' : `${((1 - Math.pow(4, -step.roundsDone.length))*100).toFixed(1)}%`)
+      : '100%';
+    document.getElementById('p3-confidence').textContent = conf;
+  } else if (step.isDeterministic && step.verdict === 'prime') {
+    document.getElementById('p3-confidence').textContent = '100%';
+  } else {
+    document.getElementById('p3-confidence').textContent = '—';
+  }
+
+  addHistory3(idx, step);
+
+  if (idx === p3State.steps.length - 1) {
+    setStatus3('Done');
+    clearTimeout(p3State.timer);
+    p3State.timer = null;
+  }
+}
+
+function addHistory3(idx, step) {
+  const tbody = document.getElementById('p3-history-body');
+  tbody.querySelectorAll('tr').forEach(r => r.classList.remove('current'));
+  let existing = tbody.querySelector(`tr[data-step="${idx}"]`);
+  if (!existing) {
+    const tr = document.createElement('tr');
+    tr.dataset.step = idx;
+    const val = step.x !== undefined ? step.x : step.curr !== undefined ? step.curr : '—';
+    tr.innerHTML = `<td>${idx+1}</td><td>${step.round||'—'}</td><td>${step.type}</td><td>${val}</td>`;
+    tr.onclick = () => { updateStep3(idx); setStatus3('Paused'); };
+    if (tbody.children.length >= 30) tbody.removeChild(tbody.firstChild);
+    tbody.appendChild(tr);
+    existing = tr;
+  }
+  existing.classList.add('current');
+  safeScrollIntoView(existing);
+}
+
+function p3Build() {
+  const n = parseInt(document.getElementById('p3-n').value);
+  const rawK = parseInt(document.getElementById('p3-rounds').value, 10);
+  if (isNaN(rawK) || rawK < 1) { alert('Please enter a valid number of rounds (minimum 1).'); return; }
+  const k = Math.min(10, rawK);
+  if (isNaN(n) || n < 3) { alert('Please enter an odd integer ≥ 3.'); return; }
+  if (n % 2 === 0) { alert(`${n} is even — immediately composite (divisible by 2).`); return; }
+
+  const { steps, witnesses, roundResults, s, d } = generateSteps3(n, k);
+  p3State.n = n; p3State.s = s; p3State.d = d;
+  p3State.steps = steps;
+  p3State.witnesses = witnesses;
+  p3State.roundResults = roundResults;
+  p3State.currentStep = -1;
+  document.getElementById('p3-history-body').innerHTML = '';
+  if (p3State.timer) { clearTimeout(p3State.timer); p3State.timer = null; }
+
+  setStatus3('Ready');
+  setButtons3(true);
+  document.getElementById('p3-step-counter').textContent = `0 / ${steps.length}`;
+  document.getElementById('p3-modmults').textContent = 0;
+  document.getElementById('p3-round-counter').textContent = 0;
+  document.getElementById('p3-confidence').textContent = '—';
+  const deterministicMode = n < 3215031751;
+  document.getElementById('p3-explanation').innerHTML = `<strong>Ready!</strong> Testing n = <strong>${n}</strong>. Requested rounds: <strong>${k}</strong>; executed rounds: <strong>${witnesses.length}</strong>${deterministicMode ? ' (deterministic witness set)' : ''}. n−1 = ${n-1} = 2^${s} × ${d}. Witnesses: ${witnesses.length ? `[${witnesses.join(', ')}]` : '[none required]'}. Click <strong>Step</strong> or <strong>Play</strong> to begin.`;
+  document.getElementById('p3-verdict').style.display = 'none';
+  document.getElementById('p3-fermat-display').innerHTML = 'Enter a number and click Build Steps to compare Fermat and Miller-Rabin on the same input.';
+  drawDecomp3(steps[0]);
+  drawChain3(null);
+}
+
+function p3Step() {
+  if (p3State.timer) { clearTimeout(p3State.timer); p3State.timer = null; }
+  const next = p3State.currentStep + 1;
+  if (next < p3State.steps.length) { updateStep3(next); setStatus3('Paused'); }
+}
+
+function p3Play() {
+  if (p3State.timer) return;
+  if (p3State.currentStep >= p3State.steps.length - 1) p3State.currentStep = -1;
+  setStatus3('Playing');
+  function tick() {
+    const next = p3State.currentStep + 1;
+    if (next >= p3State.steps.length) {
+      p3State.timer = null; setStatus3('Done'); return;
+    }
+    updateStep3(next);
+    if (p3State.status === 'Playing') {
+      p3State.timer = setTimeout(tick, Math.max(150, 900 / getSpeed3()));
+    }
+  }
+  p3State.timer = setTimeout(tick, Math.max(150, 900 / getSpeed3()));
+}
+
+function p3Pause() {
+  if (p3State.timer) { clearTimeout(p3State.timer); p3State.timer = null; }
+  setStatus3('Paused');
+}
+
+function p3Reset() {
+  if (p3State.timer) { clearTimeout(p3State.timer); p3State.timer = null; }
+  p3State.steps = []; p3State.currentStep = -1;
+  document.getElementById('p3-history-body').innerHTML = '';
+  document.getElementById('p3-step-counter').textContent = '0 / 0';
+  document.getElementById('p3-modmults').textContent = 0;
+  document.getElementById('p3-round-counter').textContent = 0;
+  document.getElementById('p3-confidence').textContent = '—';
+  document.getElementById('p3-explanation').innerHTML = '<strong>🎓 Step Explanation:</strong> Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to begin.';
+  document.getElementById('p3-decomp-svg').innerHTML = '';
+  document.getElementById('p3-chain-svg').innerHTML = '';
+  document.getElementById('p3-rounds-display').innerHTML = 'Run Build Steps to see witness results here.';
+  document.getElementById('p3-fermat-display').innerHTML = 'Enter a number and click Build Steps to compare Fermat and Miller-Rabin on the same input.';
+  document.getElementById('p3-verdict').style.display = 'none';
+  highlightPCLine(3, -1);
+  setStatus3('Idle');
+  setButtons3(false);
+}
+
+/* ── init ── */
+updateSpeedLabel(3);
+
+/* ── Global keyboard shortcuts ──
+   Space: Play/Pause, Right Arrow: Step, Esc: Pause, Home: Reset
+   (Ignored while typing in inputs/controls.) */
+function isTypingTarget(target) {
+  if (!target) return false;
+  const tag = target.tagName;
+  return target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || tag === 'BUTTON';
+}
+
+function getActivePartId() {
+  const active = document.querySelector('.part-section.active');
+  return active ? active.id : 'part1';
+}
+
+function getPartHandlers(partId) {
+  if (partId === 'part2') {
+    return {
+      isPlaying: () => p2State.status === 'Playing',
+      step: p2Step,
+      play: p2Play,
+      pause: p2Pause,
+      reset: p2Reset,
+      btnStep: 'p2-step',
+      btnPlay: 'p2-play',
+      btnPause: 'p2-pause',
+      btnReset: 'p2-reset'
+    };
+  }
+  if (partId === 'part3') {
+    return {
+      isPlaying: () => p3State.status === 'Playing',
+      step: p3Step,
+      play: p3Play,
+      pause: p3Pause,
+      reset: p3Reset,
+      btnStep: 'p3-step',
+      btnPlay: 'p3-play',
+      btnPause: 'p3-pause',
+      btnReset: 'p3-reset'
+    };
+  }
+  return {
+    isPlaying: () => p1State.status === 'Playing',
+    step: p1Step,
+    play: p1Play,
+    pause: p1Pause,
+    reset: p1Reset,
+    btnStep: 'p1-step',
+    btnPlay: 'p1-play',
+    btnPause: 'p1-pause',
+    btnReset: 'p1-reset'
+  };
+}
+
+function buttonEnabled(id) {
+  const el = document.getElementById(id);
+  return !!(el && !el.disabled);
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.defaultPrevented || isTypingTarget(e.target)) return;
+
+  const handlers = getPartHandlers(getActivePartId());
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (e.repeat) return;
+    if (handlers.isPlaying()) {
+      if (buttonEnabled(handlers.btnPause)) handlers.pause();
+    } else if (buttonEnabled(handlers.btnPlay)) {
+      handlers.play();
+    }
+    return;
+  }
+
+  if (e.code === 'ArrowRight') {
+    if (buttonEnabled(handlers.btnStep)) {
+      e.preventDefault();
+      handlers.step();
+    }
+    return;
+  }
+
+  if (e.code === 'Escape') {
+    if (buttonEnabled(handlers.btnPause)) {
+      e.preventDefault();
+      handlers.pause();
+    }
+    return;
+  }
+
+  if (e.code === 'Home') {
+    if (buttonEnabled(handlers.btnReset)) {
+      e.preventDefault();
+      handlers.reset();
+    }
+  }
+}, { passive: false });
+</script>
+</body>
+</html>
