@@ -1416,7 +1416,8 @@ Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</p
            3. Click <strong>Build Steps</strong> to precompute all test steps.<br>
            4. Watch the decomposition n−1 = 2ˢ·d animate step by step.<br>
            5. See the squaring chain for each witness: <span style="color:#3fb950">green = passes</span>, <span style="color:#f85149">red = composite detected</span>.<br>
-           6. The Carmichael demo shows Fermat's test failing before Miller-Rabin succeeds.</p>
+         6. The Carmichael demo shows Fermat's test failing before Miller-Rabin succeeds.<br>
+         7. In the RSA demo below, Miller-Rabin is used during key generation to find probable primes p and q before encryption/decryption.</p>
       </div>
     </div>
   </div>
@@ -1497,6 +1498,38 @@ Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</p
         </div>
       </div>
 
+      <!-- Cryptosystem development/testing -->
+      <div class="panel-section">
+        <div class="panel-section-title">RSA Development & Testing (CLO-3)</div>
+        <label for="p3-rsa-bits">Demo key size (bits)</label>
+        <select id="p3-rsa-bits">
+          <option value="12">12-bit modulus (fast demo)</option>
+          <option value="14" selected>14-bit modulus (recommended)</option>
+          <option value="16">16-bit modulus</option>
+          <option value="18">18-bit modulus</option>
+        </select>
+        <label for="p3-rsa-e" style="margin-top:8px;">Public exponent e</label>
+        <select id="p3-rsa-e">
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="17" selected>17</option>
+          <option value="257">257</option>
+          <option value="65537">65537</option>
+        </select>
+        <label for="p3-rsa-message" style="margin-top:8px;">Message m (integer, 0 ≤ m &lt; n)</label>
+        <input type="number" id="p3-rsa-message" value="42" min="0" step="1" placeholder="e.g. 42">
+
+        <div class="playback-row" style="margin-top:10px;">
+          <button class="btn primary" onclick="p3GenerateKeys()">Generate Keys</button>
+          <button class="btn" onclick="p3Encrypt()">Encrypt</button>
+          <button class="btn" onclick="p3Decrypt()">Decrypt</button>
+          <button class="btn" onclick="p3RunFullCryptoDemo()">Run Full Demo</button>
+        </div>
+        <div class="tip-text" style="margin-top:10px;">
+          Key generation repeatedly tests random odd candidates with Miller-Rabin until probable primes p and q are found.
+        </div>
+      </div>
+
       <!-- Pseudocode -->
       <div class="panel-section">
         <div class="panel-section-title">Pseudocode</div>
@@ -1574,6 +1607,14 @@ Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</p
         <h4>Fermat's Test vs Miller-Rabin — Side-by-Side</h4>
         <div id="p3-fermat-display" style="font-size:12px;color:var(--text2);line-height:1.9;">
           Enter a number and click Build Steps to compare Fermat and Miller-Rabin on the same input.
+        </div>
+      </div>
+
+      <!-- RSA output panel -->
+      <div class="compare-pane">
+        <h4>RSA Pipeline — KeyGen → Encrypt → Decrypt</h4>
+        <div id="p3-rsa-display" style="font-size:12px;color:var(--text2);line-height:1.8;">
+          Generate keys to begin cryptosystem development and testing.
         </div>
       </div>
 
@@ -2916,7 +2957,22 @@ const p3State = {
   n: 0, s: 0, d: 0,
   steps: [], currentStep: -1,
   timer: null, status: 'Idle',
-  witnesses: [], roundResults: []
+  witnesses: [], roundResults: [],
+  rsa: {
+    bitLength: 14,
+    e: 17n,
+    p: null,
+    q: null,
+    n: null,
+    phi: null,
+    d: null,
+    message: null,
+    cipher: null,
+    decrypted: null,
+    roundsUsed: 0,
+    attemptsP: 0,
+    attemptsQ: 0
+  }
 };
 
 /* ── BigInt-safe modular exponentiation (works for n up to ~2^53) ── */
@@ -2986,6 +3042,204 @@ function getWitnesses(n, k) {
     ws.push(a);
   }
   return ws;
+}
+
+function gcdBigInt(a, b) {
+  let x = a < 0n ? -a : a;
+  let y = b < 0n ? -b : b;
+  while (y !== 0n) {
+    const t = x % y;
+    x = y;
+    y = t;
+  }
+  return x;
+}
+
+function egcdBigInt(a, b) {
+  if (b === 0n) return { g: a, x: 1n, y: 0n };
+  const r = egcdBigInt(b, a % b);
+  return {
+    g: r.g,
+    x: r.y,
+    y: r.x - (a / b) * r.y
+  };
+}
+
+function modInverseBigInt(a, m) {
+  const r = egcdBigInt(a, m);
+  if (r.g !== 1n) return null;
+  return ((r.x % m) + m) % m;
+}
+
+function isProbablePrimeByMR(n, rounds) {
+  if (n === 2 || n === 3) return true;
+  if (n < 2 || n % 2 === 0) return false;
+  const witnesses = getWitnesses(n, rounds);
+  for (const a of witnesses) {
+    const w = mrWitness(n, a);
+    if (w.result === 'composite') return false;
+  }
+  return true;
+}
+
+function randomOddCandidate(bitLen) {
+  const min = 1 << (bitLen - 1);
+  const max = (1 << bitLen) - 1;
+  let c = min + Math.floor(Math.random() * (max - min + 1));
+  if (c % 2 === 0) c += 1;
+  if (c > max) c -= 2;
+  return c;
+}
+
+function generatePrimeByMR(bitLen, rounds, avoid) {
+  const maxAttempts = 5000;
+  for (let attempts = 1; attempts <= maxAttempts; attempts++) {
+    let c = randomOddCandidate(bitLen);
+    if (c === avoid) continue;
+    if (c % 3 === 0 && c !== 3) continue;
+    if (isProbablePrimeByMR(c, rounds)) {
+      return { prime: c, attempts };
+    }
+  }
+  throw new Error('Prime search exceeded maximum attempts. Try a smaller key size or rerun.');
+}
+
+function formatBig(v) {
+  if (v === null || v === undefined) return '—';
+  return v.toString();
+}
+
+function p3UpdateRSADisplay() {
+  const el = document.getElementById('p3-rsa-display');
+  const r = p3State.rsa;
+  if (!r.n) {
+    el.innerHTML = 'Generate keys to begin cryptosystem development and testing.';
+    return;
+  }
+
+  const msgOk = r.message !== null && r.decrypted !== null;
+  const same = msgOk && r.message === r.decrypted;
+  el.innerHTML = `
+    <div style="margin-bottom:8px;font-size:12px;"><strong>Key generation via Miller-Rabin:</strong> p and q were selected by repeated probabilistic primality tests.</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);width:180px;">p (probable prime)</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.p)}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">q (probable prime)</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.q)}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">n = p·q</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.n)}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">phi(n) = (p−1)(q−1)</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.phi)}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Public key (e, n)</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">(${formatBig(r.e)}, ${formatBig(r.n)})</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Private exponent d</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.d)}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Plaintext m</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.message)}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Ciphertext c = m^e mod n</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.cipher)}</td></tr>
+      <tr><td style="padding:4px 6px;color:var(--text3);">Decrypted m' = c^d mod n</td><td style="padding:4px 6px;font-family:Consolas,monospace;">${formatBig(r.decrypted)}</td></tr>
+    </table>
+    <div style="margin-top:8px;font-size:11px;color:var(--text3);">Prime search attempts: p in ${r.attemptsP}, q in ${r.attemptsQ}. Miller-Rabin rounds per candidate: ${r.roundsUsed}.</div>
+    <div style="margin-top:8px;padding:8px 10px;border-radius:6px;border:1px solid ${msgOk ? (same ? 'rgba(63,185,80,0.35)' : 'rgba(248,81,73,0.35)') : 'var(--border)'};background:${msgOk ? (same ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)') : 'var(--bg3)'};color:${msgOk ? (same ? '#3fb950' : '#f85149') : 'var(--text2)'};">
+      ${msgOk ? (same ? 'Correctness check passed: decrypt(encrypt(m)) = m.' : 'Correctness check failed: decrypted value differs from message.') : 'Run Encrypt and Decrypt to verify correctness.'}
+    </div>`;
+}
+
+function p3GenerateKeys() {
+  const bits = parseInt(document.getElementById('p3-rsa-bits').value, 10);
+  const selectedE = BigInt(parseInt(document.getElementById('p3-rsa-e').value, 10));
+  const rounds = 8;
+  const primeBits = Math.max(6, Math.floor(bits / 2));
+
+  try {
+    const pRes = generatePrimeByMR(primeBits, rounds, null);
+    const qRes = generatePrimeByMR(primeBits, rounds, pRes.prime);
+
+    const p = BigInt(pRes.prime);
+    const q = BigInt(qRes.prime);
+    const n = p * q;
+    const phi = (p - 1n) * (q - 1n);
+
+    let e = selectedE;
+    if (e <= 1n || e >= phi || gcdBigInt(e, phi) !== 1n) {
+      const fallbacks = [3n, 5n, 17n, 257n, 65537n];
+      const found = fallbacks.find(v => v > 1n && v < phi && gcdBigInt(v, phi) === 1n);
+      if (!found) {
+        alert('Could not find a valid public exponent e for this key pair. Please regenerate.');
+        return;
+      }
+      e = found;
+    }
+
+    const d = modInverseBigInt(e, phi);
+    if (d === null) {
+      alert('Failed to compute modular inverse for d. Please regenerate keys.');
+      return;
+    }
+
+    p3State.rsa = {
+      bitLength: bits,
+      e,
+      p,
+      q,
+      n,
+      phi,
+      d,
+      message: null,
+      cipher: null,
+      decrypted: null,
+      roundsUsed: rounds,
+      attemptsP: pRes.attempts,
+      attemptsQ: qRes.attempts
+    };
+
+    document.getElementById('p3-explanation').innerHTML = `<strong>RSA keys generated:</strong> Found probable primes p and q using Miller-Rabin (${rounds} rounds per candidate). Built n = p·q, computed phi(n), selected e = ${e}, and derived d = e^(-1) mod phi(n).`;
+    p3UpdateRSADisplay();
+  } catch (err) {
+    alert(err.message || 'Key generation failed.');
+  }
+}
+
+function p3Encrypt() {
+  const r = p3State.rsa;
+  if (!r.n) {
+    alert('Generate RSA keys first.');
+    return;
+  }
+
+  const mRaw = parseInt(document.getElementById('p3-rsa-message').value, 10);
+  if (isNaN(mRaw) || mRaw < 0) {
+    alert('Enter a valid non-negative integer message m.');
+    return;
+  }
+  if (BigInt(mRaw) >= r.n) {
+    alert(`Message must satisfy 0 ≤ m < n. Current n = ${r.n.toString()}.`);
+    return;
+  }
+
+  const m = BigInt(mRaw);
+  const c = modPow(m, r.e, r.n);
+  p3State.rsa.message = m;
+  p3State.rsa.cipher = c;
+  p3State.rsa.decrypted = null;
+
+  document.getElementById('p3-explanation').innerHTML = `<strong>RSA encryption:</strong> c = m^e mod n = ${m.toString()}^${r.e.toString()} mod ${r.n.toString()} = <strong>${c.toString()}</strong>.`;
+  p3UpdateRSADisplay();
+}
+
+function p3Decrypt() {
+  const r = p3State.rsa;
+  if (!r.n || r.cipher === null) {
+    alert('Encrypt a message first.');
+    return;
+  }
+
+  const mPrime = modPow(r.cipher, r.d, r.n);
+  p3State.rsa.decrypted = mPrime;
+  const ok = r.message !== null && mPrime === r.message;
+
+  document.getElementById('p3-explanation').innerHTML = `<strong>RSA decryption:</strong> m' = c^d mod n = ${r.cipher.toString()}^${r.d.toString()} mod ${r.n.toString()} = <strong>${mPrime.toString()}</strong>. ${ok ? 'This matches the original message.' : 'This does not match the original message.'}`;
+  p3UpdateRSADisplay();
+}
+
+function p3RunFullCryptoDemo() {
+  if (!p3State.rsa.n) p3GenerateKeys();
+  if (!p3State.rsa.n) return;
+  p3Encrypt();
+  if (p3State.rsa.cipher !== null) p3Decrypt();
 }
 
 /* ── Generate all steps ── */
@@ -3583,6 +3837,7 @@ function p3Reset() {
 
 /* ── init ── */
 updateSpeedLabel(3);
+p3UpdateRSADisplay();
 
 /* ── Global keyboard shortcuts ──
    Space: Play/Pause, Right Arrow: Step, Esc: Pause, Home: Reset
