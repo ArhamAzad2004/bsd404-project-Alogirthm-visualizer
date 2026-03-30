@@ -65,6 +65,36 @@ body {
   color: var(--text2);
 }
 
+.report-strip {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px 12px;
+}
+.report-strip p {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 7px;
+}
+.report-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.report-link {
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  text-decoration: none;
+}
+.report-link:hover {
+  text-decoration: underline;
+  border-color: var(--accent);
+}
+
 /* ── Tab Nav ── */
 .tab-nav {
   display: flex;
@@ -626,6 +656,14 @@ input[type="range"]::-webkit-slider-thumb {
   </div>
 </header>
 
+<section class="report-strip" aria-label="Report metadata">
+  <p><strong>Short Description:</strong> TODO - Replace this placeholder with your final report summary sentence(s) before submission.</p>
+  <div class="report-links">
+    <a class="report-link" href="#" onclick="event.preventDefault()">TODO: Add Microsoft Teams Video Link</a>
+    <a class="report-link" href="#" onclick="event.preventDefault()">TODO: Add GitHub Pages Live Link</a>
+  </div>
+</section>
+
 <!-- ── Tab Nav ── -->
 <nav class="tab-nav">
   <button class="tab-btn active" onclick="switchTab(1)">
@@ -979,6 +1017,10 @@ input[type="range"]::-webkit-slider-thumb {
         <h3>1. The Polynomial Multiplication Problem</h3>
         <p>Given two polynomials <strong>A(x) = a₀ + a₁x + a₂x² + … + aₙ₋₁xⁿ⁻¹</strong> and <strong>B(x) = b₀ + b₁x + … + bₙ₋₁xⁿ⁻¹</strong>, compute their product <strong>C(x) = A(x) · B(x)</strong>.</p>
         <p>The result C(x) has degree up to 2n−2 and its coefficients are given by the <strong>convolution</strong>: cₖ = Σ aᵢ · bₖ₋ᵢ. This operation appears everywhere: signal processing (convolution of two signals), number multiplication (integers are base-10 polynomials), image filtering, and cryptography.</p>
+        <div class="callout-box">
+          <strong style="color:var(--accent)">Engineering Problem Framing (CLO-2):</strong>
+          In real systems such as image convolution and audio denoising, one output frame may require thousands of polynomial-like convolutions. A quadratic-time method becomes the bottleneck, so we reformulate the problem as FFT evaluation and interpolation to meet practical runtime limits.
+        </div>
         <div class="key-concept">
           <strong>Why This Matters</strong>
           The naïve algorithm for computing cₖ requires O(n²) multiplications — computing each of the 2n coefficients of C requires up to n multiplications. For large n (e.g., n = 10⁶), this is 10¹² operations. FFT reduces this to O(n log n) — about 20 million operations. That's a 50,000× speedup.
@@ -1298,7 +1340,10 @@ Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</p
         <a href="#l3s6"><strong>6.</strong> The Squaring Chain</a> &nbsp;·&nbsp;
         <a href="#l3s7"><strong>7.</strong> Multiple Rounds &amp; Confidence</a> &nbsp;·&nbsp;
         <a href="#l3s8"><strong>8.</strong> Modular Exponentiation</a> &nbsp;·&nbsp;
-        <a href="#l3s9"><strong>9.</strong> Interactive Tool</a>
+        <a href="#l3s9"><strong>9.</strong> Extended Euclidean for d</a> &nbsp;·&nbsp;
+        <a href="#l3s10"><strong>10.</strong> Why RSA Decryption Works</a> &nbsp;·&nbsp;
+        <a href="#l3s11"><strong>11.</strong> Why Demo Keys Are Small</a> &nbsp;·&nbsp;
+        <a href="#l3s12"><strong>12.</strong> Interactive Tool</a>
       </div>
 
       <div class="lec-section" id="l3s1">
@@ -1410,7 +1455,46 @@ Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</p
       </div>
 
       <div class="lec-section" id="l3s9">
-        <h3>9. Interactive Tool — How to Use</h3>
+        <h3>9. Extended Euclidean Algorithm — Computing d = e⁻¹ mod φ(n)</h3>
+        <p>In RSA, after choosing p and q we compute φ(n) = (p−1)(q−1). The public exponent e must satisfy gcd(e, φ(n)) = 1. The private exponent d is the modular inverse of e modulo φ(n):</p>
+        <pre class="pseudocode-lec">EXTENDED-EUCLID(a, b):
+    if b == 0: return (g=a, x=1, y=0)
+    (g, x1, y1) = EXTENDED-EUCLID(b, a mod b)
+    x = y1
+    y = x1 - floor(a/b)*y1
+    return (g, x, y)
+
+// For RSA: set a = e, b = φ(n)
+// If gcd(e, φ(n)) = 1, then x*e + y*φ(n) = 1
+// Therefore x ≡ e⁻¹ (mod φ(n)) and d = x mod φ(n)</pre>
+        <div class="callout-box green">
+          <strong style="color:var(--green)">What the tool shows:</strong>
+          The RSA panel displays gcd(e, φ(n)), the Euclidean remainder chain, and the computed inverse d so intermediate number-theoretic steps are visible.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s10">
+        <h3>10. Why RSA Decryption Works — m^(ed) ≡ m (mod n)</h3>
+        <p>RSA chooses d so that <strong>ed ≡ 1 (mod φ(n))</strong>, meaning ed = 1 + kφ(n) for some integer k.</p>
+        <p>For messages coprime to n, Euler's theorem gives m^φ(n) ≡ 1 (mod n). Then:</p>
+        <pre class="pseudocode-lec">m^(ed) = m^(1 + kφ(n))
+       = m * (m^φ(n))^k
+       ≡ m * 1^k
+       ≡ m (mod n)</pre>
+        <p>Since ciphertext is c = m^e mod n, decryption computes c^d ≡ m^(ed) ≡ m (mod n), recovering the original message.</p>
+      </div>
+
+      <div class="lec-section" id="l3s11">
+        <h3>11. Why Demo Keys Are Small</h3>
+        <p>This teaching tool uses tiny key sizes (12 to 18 bits for n) so every step remains visible, fast, and checkable in class. Real RSA uses 2048+ bit moduli.</p>
+        <div class="callout-box yellow">
+          <strong style="color:var(--yellow)">Security note:</strong>
+          Demo key sizes here are intentionally insecure. They are used only to expose the internal arithmetic (prime search, φ(n), modular inverse, and exponentiation) in real time.
+        </div>
+      </div>
+
+      <div class="lec-section" id="l3s12">
+        <h3>12. Interactive Tool — How to Use</h3>
         <p>1. Enter any odd number n ≥ 3, or click a preset (including the Carmichael number 561).<br>
            2. Choose the number of witness rounds (1–10).<br>
            3. Click <strong>Build Steps</strong> to precompute all test steps.<br>
@@ -1508,6 +1592,9 @@ Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</p
           <option value="16">16-bit modulus</option>
           <option value="18">18-bit modulus</option>
         </select>
+        <div class="tip-text" style="margin-top:6px;">
+          Demo uses small keys so each arithmetic step is visible. Production RSA typically uses <strong>2048+ bit</strong> modulus sizes.
+        </div>
         <label for="p3-rsa-e" style="margin-top:8px;">Public exponent e</label>
         <select id="p3-rsa-e">
           <option value="3">3</option>
@@ -2971,7 +3058,8 @@ const p3State = {
     decrypted: null,
     roundsUsed: 0,
     attemptsP: 0,
-    attemptsQ: 0
+    attemptsQ: 0,
+    inverseTrace: []
   }
 };
 
@@ -3071,6 +3159,33 @@ function modInverseBigInt(a, m) {
   return ((r.x % m) + m) % m;
 }
 
+function traceModInverseBigInt(a, m) {
+  let r0 = m;
+  let r1 = a;
+  let s0 = 1n;
+  let s1 = 0n;
+  let t0 = 0n;
+  let t1 = 1n;
+  const steps = [];
+
+  while (r1 !== 0n) {
+    const q = r0 / r1;
+    const r2 = r0 - q * r1;
+    const s2 = s0 - q * s1;
+    const t2 = t0 - q * t1;
+    steps.push({ r0, r1, q, r2, t0, t1, t2 });
+    r0 = r1; r1 = r2;
+    s0 = s1; s1 = s2;
+    t0 = t1; t1 = t2;
+  }
+
+  return {
+    gcd: r0,
+    inverse: r0 === 1n ? ((t0 % m) + m) % m : null,
+    steps
+  };
+}
+
 function isProbablePrimeByMR(n, rounds) {
   if (n === 2 || n === 3) return true;
   if (n < 2 || n % 2 === 0) return false;
@@ -3119,6 +3234,12 @@ function p3UpdateRSADisplay() {
 
   const msgOk = r.message !== null && r.decrypted !== null;
   const same = msgOk && r.message === r.decrypted;
+  const hasInverse = r.d !== null && r.phi !== null && r.e !== null;
+  const inverseCheck = hasInverse ? (r.e * r.d) % r.phi : null;
+  const invSteps = (r.inverseTrace || []).map((s, idx) =>
+    `${idx + 1}) ${s.r0} = ${s.q} * ${s.r1} + ${s.r2}`
+  ).join('<br>');
+
   el.innerHTML = `
     <div style="margin-bottom:8px;font-size:12px;"><strong>Key generation via Miller-Rabin:</strong> p and q were selected by repeated probabilistic primality tests.</div>
     <table style="width:100%;border-collapse:collapse;font-size:11px;">
@@ -3128,11 +3249,20 @@ function p3UpdateRSADisplay() {
       <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">phi(n) = (p−1)(q−1)</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.phi)}</td></tr>
       <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Public key (e, n)</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">(${formatBig(r.e)}, ${formatBig(r.n)})</td></tr>
       <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Private exponent d</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.d)}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">gcd(e, phi(n))</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${(r.e !== null && r.phi !== null) ? formatBig(gcdBigInt(r.e, r.phi)) : '—'}</td></tr>
+      <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Inverse check (e·d mod phi)</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${inverseCheck === null ? '—' : `${inverseCheck.toString()} (must be 1)`}</td></tr>
       <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Plaintext m</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.message)}</td></tr>
       <tr><td style="padding:4px 6px;border-bottom:1px solid var(--border);color:var(--text3);">Ciphertext c = m^e mod n</td><td style="padding:4px 6px;border-bottom:1px solid var(--border);font-family:Consolas,monospace;">${formatBig(r.cipher)}</td></tr>
       <tr><td style="padding:4px 6px;color:var(--text3);">Decrypted m' = c^d mod n</td><td style="padding:4px 6px;font-family:Consolas,monospace;">${formatBig(r.decrypted)}</td></tr>
     </table>
+    <div style="margin-top:8px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);font-family:Consolas,monospace;font-size:10px;line-height:1.7;">
+      <div style="color:var(--text2);margin-bottom:4px;"><strong>Extended Euclidean remainder chain (for d = e^-1 mod phi):</strong></div>
+      ${invSteps || '<span style="color:var(--text3)">Generate keys to see Euclidean steps.</span>'}
+    </div>
     <div style="margin-top:8px;font-size:11px;color:var(--text3);">Prime search attempts: p in ${r.attemptsP}, q in ${r.attemptsQ}. Miller-Rabin rounds per candidate: ${r.roundsUsed}.</div>
+    <div style="margin-top:8px;padding:8px 10px;border-radius:6px;border:1px solid rgba(188,140,255,0.35);background:rgba(188,140,255,0.08);color:#d8c0ff;font-size:11px;">
+      RSA correctness idea: ed = 1 + k*phi(n), so m^(ed) = m^(1 + k*phi(n)) ≡ m * (m^phi(n))^k ≡ m (mod n).
+    </div>
     <div style="margin-top:8px;padding:8px 10px;border-radius:6px;border:1px solid ${msgOk ? (same ? 'rgba(63,185,80,0.35)' : 'rgba(248,81,73,0.35)') : 'var(--border)'};background:${msgOk ? (same ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)') : 'var(--bg3)'};color:${msgOk ? (same ? '#3fb950' : '#f85149') : 'var(--text2)'};">
       ${msgOk ? (same ? 'Correctness check passed: decrypt(encrypt(m)) = m.' : 'Correctness check failed: decrypted value differs from message.') : 'Run Encrypt and Decrypt to verify correctness.'}
     </div>`;
@@ -3164,7 +3294,8 @@ function p3GenerateKeys() {
       e = found;
     }
 
-    const d = modInverseBigInt(e, phi);
+    const inverseTrace = traceModInverseBigInt(e, phi);
+    const d = inverseTrace.inverse;
     if (d === null) {
       alert('Failed to compute modular inverse for d. Please regenerate keys.');
       return;
@@ -3183,10 +3314,11 @@ function p3GenerateKeys() {
       decrypted: null,
       roundsUsed: rounds,
       attemptsP: pRes.attempts,
-      attemptsQ: qRes.attempts
+      attemptsQ: qRes.attempts,
+      inverseTrace: inverseTrace.steps
     };
 
-    document.getElementById('p3-explanation').innerHTML = `<strong>RSA keys generated:</strong> Found probable primes p and q using Miller-Rabin (${rounds} rounds per candidate). Built n = p·q, computed phi(n), selected e = ${e}, and derived d = e^(-1) mod phi(n).`;
+    document.getElementById('p3-explanation').innerHTML = `<strong>RSA keys generated:</strong> Found probable primes p and q using Miller-Rabin (${rounds} rounds per candidate). Built n = p·q, computed phi(n), selected e = ${e}, and derived d using Extended Euclidean Algorithm so e·d ≡ 1 (mod phi(n)).`;
     p3UpdateRSADisplay();
   } catch (err) {
     alert(err.message || 'Key generation failed.');
@@ -3231,7 +3363,7 @@ function p3Decrypt() {
   p3State.rsa.decrypted = mPrime;
   const ok = r.message !== null && mPrime === r.message;
 
-  document.getElementById('p3-explanation').innerHTML = `<strong>RSA decryption:</strong> m' = c^d mod n = ${r.cipher.toString()}^${r.d.toString()} mod ${r.n.toString()} = <strong>${mPrime.toString()}</strong>. ${ok ? 'This matches the original message.' : 'This does not match the original message.'}`;
+  document.getElementById('p3-explanation').innerHTML = `<strong>RSA decryption:</strong> m' = c^d mod n = ${r.cipher.toString()}^${r.d.toString()} mod ${r.n.toString()} = <strong>${mPrime.toString()}</strong>. ${ok ? "This matches the original message. By construction ed = 1 + k·phi(n), so m^(ed) ≡ m (mod n)." : 'This does not match the original message.'}`;
   p3UpdateRSADisplay();
 }
 
