@@ -1298,8 +1298,10 @@ Step 3 — INTERPOLATE: Recover C's coefficients from its values [O(n log n)]</p
         <div class="compare-grid" style="margin-top:10px;">
           <div class="compare-box">
             <div class="algo-name" style="color:#58a6ff">FFT Convolution</div>
-            <div class="algo-stat" id="p2-fft-ops" style="color:#58a6ff">—</div>
-            <div class="algo-stat-label">O(n log n) operations</div>
+            <div class="algo-stat" id="p2-fft-ops-est" style="color:#58a6ff">—</div>
+            <div class="algo-stat-label">Teaching estimate (dominant term)</div>
+            <div class="algo-stat" id="p2-fft-ops-total" style="color:#58a6ff">—</div>
+            <div class="algo-stat-label">Full pipeline (FFT(A)+FFT(B)+IFFT+pointwise)</div>
           </div>
           <div class="compare-box">
             <div class="algo-name">Naïve Convolution</div>
@@ -2459,7 +2461,7 @@ function generateSteps2(A, B) {
   const bPad = [...B]; while(bPad.length < n) bPad.push(0);
 
   steps.push({
-    phase: 'Init', pcLine: 1,
+    phase: 'Setup', pcLine: 1,
     type: 'init',
     n, aPad: [...aPad], bPad: [...bPad],
     butterflies: 0, mults: 0,
@@ -2470,7 +2472,7 @@ function generateSteps2(A, B) {
 
   // ── PHASE 1: FFT(A) ──
   steps.push({
-    phase: 'FFT(A)', pcLine: 2, type: 'phase_start',
+    phase: 'Phase 1 — FFT(A)', pcLine: 2, type: 'phase_start',
     butterflies: 0, mults: 0,
     circleN: n, circleActive: Array.from({length:n},(_,i)=>i),
     explanation: `<strong>Phase 1a — Evaluate A:</strong> Computing FFT of A = [${aPad.join(', ')}] at the ${n} roots of unity ω⁰, ω¹, …, ω^${n-1} where ω = e^(2πi/${n}). These are ${n} evenly-spaced points on the unit circle.`,
@@ -2478,40 +2480,38 @@ function generateSteps2(A, B) {
   });
 
   // Generate butterfly steps for FFT(A)
-  const faSteps = generateButterflySteps(aPad, false, 'FFT(A)', result);
+  const faSteps = generateButterflySteps(aPad, false, 'Phase 1 — FFT(A)', result);
   steps.push(...faSteps);
   const FA = fft(aPad, false);
 
   // ── PHASE 1b: FFT(B) ──
   steps.push({
-    phase: 'FFT(B)', pcLine: 3, type: 'phase_start',
+    phase: 'Phase 1 — FFT(B)', pcLine: 3, type: 'phase_start',
     butterflies: result.butterflies, mults: result.mults,
     circleN: n, circleActive: Array.from({length:n},(_,i)=>i),
     explanation: `<strong>Phase 1b — Evaluate B:</strong> Now compute FFT of B = [${bPad.join(', ')}] at the same ${n} roots. We reuse the same butterfly network structure.`,
     highlight: [], butterflyHighlight: []
   });
 
-  const fbSteps = generateButterflySteps(bPad, false, 'FFT(B)', result);
+  const fbSteps = generateButterflySteps(bPad, false, 'Phase 1 — FFT(B)', result);
   steps.push(...fbSteps);
   const FB = fft(bPad, false);
 
   // ── PHASE 2: Pointwise multiply ──
   steps.push({
-    phase: 'Pointwise ×', pcLine: 4, type: 'pointwise_start',
+    phase: 'Phase 2 — Pointwise ×', pcLine: 4, type: 'pointwise_start',
     butterflies: result.butterflies, mults: result.mults,
     circleN: n, circleActive: [],
     explanation: `<strong>Phase 2 — Pointwise Multiply:</strong> Now multiply FA[k] × FB[k] for each k = 0..${n-1}. This is just n = ${n} scalar complex multiplications — O(n) total.`,
     highlight: [], butterflyHighlight: []
   });
 
-  const FC = FA.map((fa, k) => {
-    result.mults++;
-    return cMul(fa, FB[k]);
-  });
-
+  const FC = new Array(n);
   for (let k = 0; k < n; k++) {
+    FC[k] = cMul(FA[k], FB[k]);
+    result.mults++;
     steps.push({
-      phase: 'Pointwise ×', pcLine: 4, type: 'pointwise',
+      phase: 'Phase 2 — Pointwise ×', pcLine: 4, type: 'pointwise',
       k, faVal: FA[k], fbVal: FB[k], fcVal: FC[k],
       butterflies: result.butterflies, mults: result.mults,
       circleN: n, circleActive: [k],
@@ -2522,14 +2522,14 @@ function generateSteps2(A, B) {
 
   // ── PHASE 3: IFFT ──
   steps.push({
-    phase: 'IFFT', pcLine: 5, type: 'phase_start',
+    phase: 'Phase 3 — IFFT', pcLine: 5, type: 'phase_start',
     butterflies: result.butterflies, mults: result.mults,
     circleN: n, circleActive: Array.from({length:n},(_,i)=>i),
     explanation: `<strong>Phase 3 — Interpolate (IFFT):</strong> Apply inverse FFT to FC. The IFFT is identical to FFT but uses ω⁻¹ = e^(−2πi/${n}) and divides by n=${n} at the end.`,
     highlight: [], butterflyHighlight: []
   });
 
-  const ifftSteps = generateButterflySteps([...FC], true, 'IFFT', result);
+  const ifftSteps = generateButterflySteps([...FC], true, 'Phase 3 — IFFT', result);
   steps.push(...ifftSteps);
 
   const C = fft(FC, true);
@@ -2568,8 +2568,9 @@ function generateButterflySteps(a, invert, label, counter) {
       }
     }
 
+    const pcLine = 12 + ((level - 1) % 4);
     steps.push({
-      phase: label, pcLine: 12, type: 'butterfly_level',
+      phase: label, pcLine, type: 'butterfly_level',
       level, logN, n,
       ang: ang * 180 / Math.PI,
       levelButterflies,
@@ -2605,7 +2606,7 @@ function drawCircle2(step) {
   html += `<text x="${CX+2}" y="${CY-R-4}" fill="var(--text3)" font-size="9" font-family="Consolas,monospace">i</text>`;
   html += `<text x="${CX+2}" y="${CY+R+12}" fill="var(--text3)" font-size="9" font-family="Consolas,monospace">-i</text>`;
 
-  const phaseColor = phase.startsWith('IFFT') ? '#bc8cff' : '#58a6ff';
+  const phaseColor = getPart2PhaseColor(phase);
 
   for (let k = 0; k < n; k++) {
     const angle = -2 * Math.PI * k / n; // negative because SVG y is down
@@ -2627,7 +2628,7 @@ function drawCircle2(step) {
   }
 
   // Phase indicator
-  const pColor = phase.startsWith('IFFT') ? '#bc8cff' : phase.startsWith('Pointwise') ? '#3fb950' : '#58a6ff';
+  const pColor = getPart2PhaseColor(phase);
   html += `<text x="230" y="20" fill="${pColor}" font-size="11" font-weight="600" font-family="Segoe UI,sans-serif">${phase}</text>`;
   html += `<text x="230" y="36" fill="var(--text3)" font-size="10" font-family="Segoe UI,sans-serif">n = ${n}, evaluating at ${n} points</text>`;
 
@@ -2656,7 +2657,7 @@ function drawButterfly2(step) {
   const phase = step.phase || '';
   const bfHighlight = new Set((step.butterflyHighlight || []).map(b => `${b.top},${b.bot}`));
 
-  const phaseColor = phase.startsWith('IFFT') ? '#bc8cff' : '#58a6ff';
+  const phaseColor = getPart2PhaseColor(phase);
   const activeColor = step.type === 'pointwise' || step.type === 'pointwise_start' ? '#3fb950' : phaseColor;
 
   const PAD_L = 56, PAD_R = 20, PAD_T = 30, PAD_B = 20;
@@ -2733,7 +2734,7 @@ function drawButterfly2(step) {
   }
 
   // Phase title
-  const pColor = phase.startsWith('IFFT') ? '#bc8cff' : phase.startsWith('Pointwise') ? '#3fb950' : '#58a6ff';
+  const pColor = getPart2PhaseColor(phase);
   html += `<text x="${totalW/2}" y="14" fill="${pColor}" font-size="11" font-weight="600" text-anchor="middle" font-family="Segoe UI,sans-serif">${phase} — ${n} inputs, ${logN} levels, ${(n/2)*logN} butterflies total</text>`;
 
   svg.innerHTML = html;
@@ -2754,8 +2755,9 @@ function buildSplitTreeLevels2(n) {
 }
 
 function getPart2PhaseColor(phase) {
-  if (phase && phase.startsWith('IFFT')) return '#bc8cff';
-  if (phase && phase.startsWith('Pointwise')) return '#3fb950';
+  const p = (phase || '').toLowerCase();
+  if (p.includes('ifft')) return '#bc8cff';
+  if (p.includes('pointwise')) return '#3fb950';
   return '#58a6ff';
 }
 
@@ -2867,7 +2869,7 @@ function toggleSplitTree2() {
   if (p2State.currentStep >= 0 && p2State.steps.length) {
     drawSplitTree2(p2State.steps[p2State.currentStep], p2State.fftN);
   } else if (p2State.fftN) {
-    drawSplitTree2({ phase: 'Init', type: 'init' }, p2State.fftN);
+    drawSplitTree2({ phase: 'Setup', type: 'init' }, p2State.fftN);
   }
 }
 
@@ -2897,6 +2899,8 @@ function updateStep2(idx) {
   if (idx < 0 || idx >= p2State.steps.length) return;
   p2State.currentStep = idx;
   const step = p2State.steps[idx];
+  const displayTotal = Math.max(0, p2State.steps.length - 1);
+  const displayIndex = Math.max(0, idx - 1);
 
   drawCircle2(step);
   drawButterfly2({...step, n: p2State.fftN});
@@ -2905,7 +2909,9 @@ function updateStep2(idx) {
   }
   highlightPCLine(2, step.pcLine);
   document.getElementById('p2-explanation').innerHTML = step.explanation;
-  document.getElementById('p2-step-counter').textContent = `${idx + 1} / ${p2State.steps.length}`;
+  document.getElementById('p2-step-counter').textContent = idx > 0
+    ? `${displayIndex + 1} / ${displayTotal}`
+    : `0 / ${displayTotal}`;
   document.getElementById('p2-butterflies').textContent = step.butterflies;
   document.getElementById('p2-mults').textContent = step.mults;
   document.getElementById('p2-phase-label').textContent = step.phase || '—';
@@ -2914,6 +2920,8 @@ function updateStep2(idx) {
     document.getElementById('p2-result-display').innerHTML =
       `<span style="color:var(--text3)">A(x) × B(x) =</span> <span style="color:#3fb950">${polyToStr(step.coeffs)}</span><br>` +
       `<span style="color:var(--text3);font-size:11px;">Coefficients: [${step.coeffs.join(', ')}]</span>`;
+  } else {
+    document.getElementById('p2-result-display').textContent = 'Result will appear after Phase 3 completes.';
   }
 
   addHistory2(idx, step);
@@ -2926,6 +2934,7 @@ function updateStep2(idx) {
 }
 
 function addHistory2(idx, step) {
+  if (idx <= 0) return;
   const tbody = document.getElementById('p2-history-body');
   tbody.querySelectorAll('tr').forEach(r => r.classList.remove('current'));
   let existing = tbody.querySelector(`tr[data-step="${idx}"]`);
@@ -2933,7 +2942,7 @@ function addHistory2(idx, step) {
     const tr = document.createElement('tr');
     tr.dataset.step = idx;
     const detail = step.type === 'pointwise' ? `k=${step.k}` : step.type === 'butterfly_level' ? `L${step.level}/${step.logN}` : step.type;
-    tr.innerHTML = `<td>${idx+1}</td><td>${step.phase}</td><td>${step.type}</td><td>${detail}</td>`;
+    tr.innerHTML = `<td>${idx}</td><td>${step.phase}</td><td>${step.type}</td><td>${detail}</td>`;
     tr.onclick = () => { updateStep2(idx); setStatus2('Paused'); };
     if (tbody.children.length >= 30) tbody.removeChild(tbody.firstChild);
     tbody.appendChild(tr);
@@ -2955,25 +2964,36 @@ function p2Build() {
   p2State.fftN = nextPow2(A.length + B.length - 1);
   p2State.splitTreeLevels = null;
   p2State.steps = generateSteps2(A, B);
-  p2State.currentStep = -1;
+  p2State.currentStep = 0;
   document.getElementById('p2-history-body').innerHTML = '';
   if (p2State.timer) { clearTimeout(p2State.timer); p2State.timer = null; }
 
   const n = p2State.fftN;
-  const fftOps = Math.round((n / 2) * Math.log2(n) * 3);
+  const logN = Math.log2(n);
+  const baseButterflies = (n / 2) * logN;
+  const fftEstimate = n <= 8 ? n * 2 : Math.round(baseButterflies);
+  const fftFull = Math.round(baseButterflies * 3 + n);
   const naiveOps = A.length * B.length;
-  document.getElementById('p2-fft-ops').textContent = fftOps;
+  document.getElementById('p2-fft-ops-est').textContent = fftEstimate;
+  document.getElementById('p2-fft-ops-total').textContent = fftFull;
   document.getElementById('p2-naive-ops').textContent = naiveOps;
+  const estNote = naiveOps > fftEstimate
+    ? `Estimate: FFT is ${(naiveOps / fftEstimate).toFixed(1)}× faster.`
+    : 'Estimate: at small n, naïve is competitive.';
+  const fullNote = naiveOps > fftFull
+    ? `Full pipeline: ${(naiveOps / fftFull).toFixed(1)}× faster.`
+    : 'Full pipeline: overhead can dominate at small n.';
   document.getElementById('p2-speedup-note').textContent =
-    `For this input (n=${n}): FFT uses ~${fftOps} operations vs naïve's ${naiveOps}. ${naiveOps > fftOps ? `FFT is ${(naiveOps/fftOps).toFixed(1)}× faster.` : 'At small n, naïve is competitive — FFT wins at large scale.'}`;
+    `For this input (n=${n}): ${estNote} ${fullNote}`;
 
   setStatus2('Ready');
   setButtons2(true);
-  document.getElementById('p2-step-counter').textContent = `0 / ${p2State.steps.length}`;
+  document.getElementById('p2-step-counter').textContent = `0 / ${Math.max(0, p2State.steps.length - 1)}`;
   document.getElementById('p2-butterflies').textContent = 0;
   document.getElementById('p2-mults').textContent = 0;
   document.getElementById('p2-phase-label').textContent = '—';
-  document.getElementById('p2-explanation').innerHTML = `<strong>Ready!</strong> Built <strong>${p2State.steps.length}</strong> steps. Input size padded to n = ${n}. Click <strong>Step</strong> or <strong>Play</strong> to begin.`;
+  document.getElementById('p2-explanation').innerHTML = `<strong>Ready!</strong> Built <strong>${Math.max(0, p2State.steps.length - 1)}</strong> steps. Input size padded to n = ${n}. Click <strong>Step</strong> or <strong>Play</strong> to begin.`;
+  document.getElementById('p2-result-display').textContent = 'Result will appear after Phase 3 completes.';
   drawCircle2(p2State.steps[0]);
   drawButterfly2({...p2State.steps[0], n});
   if (p2State.showSplitTree) {
@@ -2983,16 +3003,16 @@ function p2Build() {
 
 function p2Step() {
   if (p2State.timer) { clearTimeout(p2State.timer); p2State.timer = null; }
-  const next = p2State.currentStep + 1;
+  const next = p2State.currentStep < 1 ? 1 : p2State.currentStep + 1;
   if (next < p2State.steps.length) { updateStep2(next); setStatus2('Paused'); }
 }
 
 function p2Play() {
   if (p2State.timer) return;
-  if (p2State.currentStep >= p2State.steps.length - 1) p2State.currentStep = -1;
+  if (p2State.currentStep >= p2State.steps.length - 1) p2State.currentStep = 0;
   setStatus2('Playing');
   function tick() {
-    const next = p2State.currentStep + 1;
+    const next = p2State.currentStep < 1 ? 1 : p2State.currentStep + 1;
     if (next >= p2State.steps.length) {
       p2State.timer = null; setStatus2('Done'); return;
     }
@@ -3019,7 +3039,8 @@ function p2Reset() {
   document.getElementById('p2-phase-label').textContent = '—';
   document.getElementById('p2-explanation').innerHTML = '<strong>🎓 Step Explanation:</strong> Click <strong>Build Steps</strong>, then <strong>Step</strong> or <strong>Play</strong> to begin.';
   document.getElementById('p2-result-display').textContent = 'Enter polynomials and click Build Steps to see the result.';
-  document.getElementById('p2-fft-ops').textContent = '—';
+  document.getElementById('p2-fft-ops-est').textContent = '—';
+  document.getElementById('p2-fft-ops-total').textContent = '—';
   document.getElementById('p2-naive-ops').textContent = '—';
   document.getElementById('p2-speedup-note').textContent = '';
   document.getElementById('p2-circle-svg').innerHTML = '';
